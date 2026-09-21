@@ -241,6 +241,25 @@ table.tech-table td.mono, table.tech-table td strong{font-family:var(--font-mono
 .debrief-card p{font-size:0.82rem;color:var(--ink-dim);margin-bottom:4px;}
 .debrief-card .loc{font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);}
 
+/* ============================= HANDS-ON LABS ============================= */
+.lab-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+.lab-card{
+  position:relative;
+  background:var(--navy-800);
+  border:1px solid var(--line-dim);
+  border-top:3px solid var(--lab-accent,var(--brass));
+  padding:26px 24px 22px;
+  clip-path:polygon(0 0, 88% 0, 100% 10%, 100% 100%, 0 100%);
+  display:flex;flex-direction:column;gap:14px;
+  text-decoration:none;color:inherit;
+  transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.lab-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(0,0,0,0.35);}
+.lab-num{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);}
+.lab-card h3{font-size:1.55rem;color:var(--ink);line-height:1.05;}
+.lab-card p{font-size:.88rem;color:var(--ink-dim);}
+.lab-open{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.04em;color:var(--lab-accent,var(--brass));margin-top:auto;display:flex;align-items:center;gap:6px;}
+
 footer{padding:36px 0 60px;color:var(--ink-faint);font-size:0.8rem;border-top:1px solid var(--line-dim);}
 footer .foot-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
 
@@ -344,6 +363,7 @@ footer .foot-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1
 
 @media (max-width:900px){
   .case-grid{grid-template-columns:1fr;}
+  .lab-grid{grid-template-columns:1fr;}
   .info-grid{grid-template-columns:1fr;}
   .scenario-body{grid-template-columns:1fr;}
   .diagram-panel{position:relative;top:0;}
@@ -360,6 +380,7 @@ footer .foot-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1
   <nav id="landingNav">
     <a href="#cases">Case Files</a>
     <a href="#topology">Network Map</a>
+    <a href="#labs">Labs</a>
     <a href="#debrief">Debrief</a>
   </nav>
   <div id="scenarioNav">
@@ -463,6 +484,34 @@ footer .foot-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1
       <div class="debrief-card"><h4>DTP Disabled + Native VLAN</h4><p>No port will negotiate a trunk, and the native VLAN is moved off the default — no double-tagged frame has anywhere to hop to.</p><p class="loc">All access ports</p></div>
       <div class="debrief-card"><h4>Extended ACL</h4><p>Blocks the DMZ from initiating traffic into the Internal VLAN — the safety net even if a DMZ host is fully compromised.</p><p class="loc">R1, DMZ ↔ Internal</p></div>
       <div class="debrief-card"><h4>AAA + SSH</h4><p>Locks down device management so the network gear itself isn't the easiest thing on the network to take over.</p><p class="loc">R1 and SW1</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="labs">
+    <div class="section-head">
+      <span class="eyebrow">Hands-On</span>
+      <h2>Run the Labs</h2>
+      <p>Every scenario above runs for real. Start in the browser, then turn the same attacks loose against live machines — the one-command container lab, or the full Cisco topology.</p>
+    </div>
+    <div class="lab-grid">
+      <a class="lab-card" href="sim/index.html" style="--lab-accent:var(--c-flood)">
+        <span class="lab-num">In the browser</span>
+        <h3>Simulation labs</h3>
+        <p>Three sandboxed JS labs: MAC flood + DHCP starvation, ARP spoofing / DAI, and SQLi / XSS. Nothing real is touched — flip the same hardening switches the case files describe.</p>
+        <span class="lab-open">Launch the sims &rarr;</span>
+      </a>
+      <a class="lab-card" href="lab/README.md" style="--lab-accent:var(--c-ghost)">
+        <span class="lab-num">Real machines</span>
+        <h3>Docker compose lab</h3>
+        <p>A Kali attacker, the DVWA target, a DHCP edge router and Employee-PC1 across EXT / DMZ / INTERNAL / MGMT. One command brings it up; real arpspoof, macof, dhcpig, sqlmap and hashcat.</p>
+        <span class="lab-open">Open the compose lab &rarr;</span>
+      </a>
+      <a class="lab-card" href="lab/gns3/README.md" style="--lab-accent:var(--c-ledger)">
+        <span class="lab-num">Real network</span>
+        <h3>GNS3 + Cisco</h3>
+        <p>The same topology with IOSv / IOSvL2: Port Security, DHCP snooping, DAI and BPDU Guard battling real macof and arpspoof traffic on the wire.</p>
+        <span class="lab-open">Open the GNS3 project &rarr;</span>
+      </a>
     </div>
   </section>
 

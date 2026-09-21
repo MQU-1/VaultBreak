@@ -1,0 +1,163 @@
+# VaultBreak — Real Docker Lab
+#
+# Mirrors the walkthrough network with real containers:
+#   EXT     192.168.250.0/24   untrusted (attacker's outside leg)
+#   VLAN 10 192.168.10.0/24    DMZ      (DVWA web server)
+#   VLAN 20 192.168.20.0/24    INTERNAL (Employee-PC1 + attacker's L2 leg + r1 DHCP pool)
+#   VLAN 99 192.168.99.0/24    MGMT     (r1 management address)
+#
+# Machines (all real):
+#   r1        edge router  - ip_forward + dnsmasq (DHCP pool on VLAN 20) + extended ACL
+#   dvwa      web target   - DockerizedDVWA, the app referenced in Case 03
+#   attacker  Kali Linux   - real tools: arpspoof, macof, dhcpig, sqlmap, hashcat, stegseek
+#   victim    Employee-PC1 - DHCP client that walks through the pool and logs into DVWA
+#
+# r1 routes between segments; the "forwarding" helper just flips the host's
+# net.ipv4.ip_forward + FORWARD policy so container routing actually works
+# (Docker Desktop and most Linux hosts restrict cross-bridge forwarding).
+#
+# Usage:
+#   docker compose up --build -d
+#   docker exec -it vb-attacker bash
+#
+# Bring down: docker compose down
+name: vaultbreak-lab
+
+services:
+
+  # --- control plane: allow r1 to route between segments -------------------
+  forwarding:
+    image: docker:24
+    container_name: vb-forward
+    network_mode: host
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        echo 1 > /proc/sys/net/ipv4/ip_forward
+        iptables -P FORWARD ACCEPT
+        # Extended ACL (Case 03 hardening): the DMZ may not *initiate* NEW
+        # traffic into INTERNAL. In Docker, cross-bridge flows pass through the
+        # host FORWARD chain and never traverse r1's namespace, so we enforce
+        # the ACL here; r1 carries the identical router-perspective mirror that
+        # the GNS3/Cisco half teaches with.
+        DMZ_BR=$(ip -o -4 addr show | awk '$4 ~ /^192\.168\.10\.254\// {print $2; exit}')
+        INT_BR=$(ip -o -4 addr show | awk '$4 ~ /^192\.168\.20\.254\// {print $2; exit}')
+        if [ -n "$DMZ_BR" ] && [ -n "$INT_BR" ]; then
+          iptables -A FORWARD -i "$DMZ_BR" -o "$INT_BR" -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+          iptables -A FORWARD -i "$DMZ_BR" -o "$INT_BR" -m conntrack --ctstate NEW -j REJECT --reject-with tcp-reset
+          echo "[vb] extended ACL live: $DMZ_BR -> $INT_BR (DMZ cannot initiate to INTERNAL)"
+        else
+          echo "[vb] WARN: bridge interfaces not found, ACL demo skipped"
+        fi
+        echo "[vb] host forwarding enabled -> r1 can route EXT/DMZ/INTERNAL/MGMT"
+        trap 'echo "[vb] forwarding helper exiting" >&2' TERM INT
+        sleep infinity
+    restart: unless-stopped
+
+  # --- edge router: DHCP pool server + inter-VLAN routing + ACL ------------
+  r1:
+    build: ./r1
+    container_name: vb-r1
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    networks:
+      ext:
+        ipv4_address: 192.168.250.1
+      dmz:
+        ipv4_address: 192.168.10.1
+      internal:
+        ipv4_address: 192.168.20.1
+      mgmt:
+        ipv4_address: 192.168.99.1
+    depends_on:
+      - forwarding
+    restart: unless-stopped
+
+  # --- vulnerable web target (Case 03) --------------------------------------
+  dvwa:
+    image: dockerizeddvwa/dvwa:latest
+    container_name: vb-dvwa
+    networks:
+      dmz:
+        ipv4_address: 192.168.10.20
+    # convenience only: DVWA listens on 80 in its container, exposed as 8080
+    # on the host. Shut this off if you do not want the vulnerable app on your
+    # machine's loopback interface.
+    ports:
+      - "8080:80"
+    environment:
+      - DVWA_WEB_PHP_MODULES=pdo,mysqli
+    depends_on:
+      - forwarding
+      - r1
+    restart: unless-stopped
+
+  # --- attacker: Kali Linux with real tooling ------------------------------
+  attacker:
+    build: ./attacker
+    container_name: vb-attacker
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      ext:
+        ipv4_address: 192.168.250.66
+      dmz:
+        ipv4_address: 192.168.10.66
+      internal:
+        ipv4_address: 192.168.20.66
+    depends_on:
+      - forwarding
+      - r1
+      - dvwa
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+  # --- victim: Employee-PC1 on VLAN 20 --------------------------------------
+  victim:
+    build: ./victim-pc
+    container_name: vb-victim
+    networks:
+      internal: {}
+    depends_on:
+      - forwarding
+      - r1
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+networks:
+  ext:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.250.0/24
+          gateway: 192.168.250.254
+  dmz:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.10.0/24
+          gateway: 192.168.10.254
+  internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.20.0/24
+          gateway: 192.168.20.254
+  mgmt:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.99.0/24
+          gateway: 192.168.99.254

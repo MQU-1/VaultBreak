@@ -1,0 +1,380 @@
+{
+  "type": "topology",
+  "project_id": "e1f9c2a3-4b5d-4e6f-8a9b-0c1d2e3f4a5b",
+  "name": "VaultBreak",
+  "revision": 3,
+  "topology": {
+    "name": "VaultBreak — segmented enterprise lab (EXT / VLAN10 DMZ / VLAN20 INTERNAL / VLAN99 MGMT)",
+    "version": "2.1.0",
+    "path": null,
+    "nodes": [
+      {
+        "id": "1a2b3c4d-0000-4000-8000-000000000010",
+        "name": "Kali-Attacker",
+        "type": "qemu",
+        "x": 60,
+        "y": 180,
+        "z": 2,
+        "properties": {
+          "platform": "generic",
+          "image": "kali-linux-2026.qcow2",
+          "ram": 4096,
+          "console_type": "spice"
+        },
+        "category": "guests",
+        "console_type": "spice",
+        "console_host": "127.0.0.1",
+        "console_port": 5001,
+        "linked": true,
+        "label": {
+          "text": "Kali-Attacker\nEXT + DMZ + INTERNAL",
+          "x": 60,
+          "y": 168,
+          "style": "font-size: 12px; color: #F2F6FA;"
+        },
+        "port_name_format": "Ethernet{0}",
+        "ports": [
+          {"adapter_number": 0, "port_number": 0, "type": "ethernet", "name": "Ethernet0"},
+          {"adapter_number": 0, "port_number": 1, "type": "ethernet", "name": "Ethernet1"},
+          {"adapter_number": 0, "port_number": 2, "type": "ethernet", "name": "Ethernet2"}
+        ],
+        "status": "stopped"
+      },
+      {
+        "id": "1a2b3c4d-0000-4000-8000-000000000011",
+        "name": "DVWA-Server",
+        "type": "qemu",
+        "x": 60,
+        "y": 420,
+        "z": 2,
+        "properties": {
+          "platform": "generic",
+          "image": "dvwa-ubuntu.qcow2",
+          "ram": 2048,
+          "console_type": "spice"
+        },
+        "category": "guests",
+        "console_type": "spice",
+        "console_host": "127.0.0.1",
+        "console_port": 5002,
+        "linked": true,
+        "label": {
+          "text": "DVWA-Server 192.168.10.20",
+          "x": 60,
+          "y": 408,
+          "style": "font-size: 12px; color: #F2F6FA;"
+        },
+        "port_name_format": "Ethernet{0}",
+        "ports": [
+          {"adapter_number": 0, "port_number": 0, "type": "ethernet", "name": "Ethernet0"}
+        ],
+        "status": "stopped"
+      },
+      {
+        "id": "1a2b3c4d-0000-4000-8000-000000000020",
+        "name": "R1",
+        "type": "qemu",
+        "x": 320,
+        "y": 120,
+        "z": 1,
+        "properties": {
+          "platform": "iosv",
+          "image": "IOSv-15.6.qcow2",
+          "ram": 1024,
+          "console_type": "telnet"
+        },
+        "category": "routers",
+        "console_type": "telnet",
+        "console_host": "127.0.0.1",
+        "console_port": 5003,
+        "linked": true,
+        "label": {
+          "text": "R1 · Edge",
+          "x": 320,
+          "y": 108,
+          "style": "font-size: 13px; color: #D9A544;"
+        },
+        "port_name_format": "GigabitEthernet{0}/{1}",
+        "ports": [
+          {"adapter_number": 0, "port_number": 0, "type": "ethernet", "name": "Gi0/0"},
+          {"adapter_number": 0, "port_number": 1, "type": "ethernet", "name": "Gi0/1"},
+          {"adapter_number": 0, "port_number": 2, "type": "ethernet", "name": "Gi0/2"},
+          {"adapter_number": 0, "port_number": 3, "type": "ethernet", "name": "Gi0/3"}
+        ],
+        "status": "stopped"
+      },
+      {
+        "id": "1a2b3c4d-0000-4000-8000-000000000021",
+        "name": "SW1-Core",
+        "type": "qemu",
+        "x": 320,
+        "y": 300,
+        "z": 1,
+        "properties": {
+          "platform": "iosvl2",
+          "image": "IOSvL2-15.2.qcow2",
+          "ram": 1024,
+          "console_type": "telnet"
+        },
+        "category": "switches",
+        "console_type": "telnet",
+        "console_host": "127.0.0.1",
+        "console_port": 5004,
+        "linked": true,
+        "label": {
+          "text": "SW1 · Core",
+          "x": 320,
+          "y": 288,
+          "style": "font-size: 13px; color: #D9A544;"
+        },
+        "port_name_format": "GigabitEthernet{0}/{1}",
+        "ports": [
+          {"adapter_number": 0, "port_number": 0, "type": "ethernet", "name": "Gi1/0/1"},
+          {"adapter_number": 0, "port_number": 1, "type": "ethernet", "name": "Gi1/0/2"},
+          {"adapter_number": 0, "port_number": 2, "type": "ethernet", "name": "Gi1/0/3"},
+          {"adapter_number": 0, "port_number": 3, "type": "ethernet", "name": "Gi1/0/4"}
+        ],
+        "status": "stopped"
+      },
+      {
+        "id": "1a2b3c4d-0000-4000-8000-000000000022",
+        "name": "SW2-DMZ",
+        "type": "qemu",
+        "x": 120,
+        "y": 560,
+        "z": 1,
+        "properties": {
+          "platform": "iosvl2",
+          "image": "IOSvL2-15.2.qcow2",
+          "ram": 1024,
+          "console_type": "telnet"
+        },
+        "category": "switches",
+        "console_type": "telnet",
+        "console_host": "127.0.0.1",
+        "console_port": 5005,
+        "linked": true,
+        "label": {
+          "text": "SW2 · DMZ access",
+          "x": 120,
+          "y": 548,
+          "style": "font-size: 13px; color: #D9A544;"
+        },
+        "port_name_format": "GigabitEthernet{0}/{1}",
+        "ports": [
+          {"adapter_number": 0, "port_number": 0, "type": "ethernet", "name": "Gi1/0/1"},
+          {"adapter_number": 0, "port_number": 1, "type": "ethernet", "name": "Gi1/0/2"},
+          {"adapter_number": 0, "port_number": 2, "type": "ethernet", "name": "Gi1/0/3"}
+        ],
+        "status": "stopped"
+      },
+      {
+        "id": "1a2b3c4d-0000-4000-8000-000000000023",
+        "name": "SW3-INTERNAL",
+        "type": "qemu",
+        "x": 520,
+        "y": 560,
+        "z": 1,
+        "properties": {
+          "platform": "iosvl2",
+          "image": "IOSvL2-15.2.qcow2",
+          "ram": 1024,
+          "console_type": "telnet"
+        },
+        "category": "switches",
+        "console_type": "telnet",
+        "console_host": "127.0.0.1",
+        "console_port": 5006,
+        "linked": true,
+        "label": {
+          "text": "SW3 · INTERNAL access",
+          "x": 520,
+          "y": 548,
+          "style": "font-size: 13px; color: #D9A544;"
+        },
+        "port_name_format": "GigabitEthernet{0}/{1}",
+        "ports": [
+          {"adapter_number": 0, "port_number": 0, "type": "ethernet", "name": "Gi1/0/1"},
+          {"adapter_number": 0, "port_number": 1, "type": "ethernet", "name": "Gi1/0/2"},
+          {"adapter_number": 0, "port_number": 2, "type": "ethernet", "name": "Gi1/0/3"}
+        ],
+        "status": "stopped"
+      },
+      {
+        "id": "1a2b3c4d-0000-4000-8000-000000000030",
+        "name": "Employee-PC1",
+        "type": "ethernet_switch",
+        "x": 720,
+        "y": 560,
+        "z": 0,
+        "properties": {
+          "ports_mapping": [
+            {"port_number": 0, "name": "PC1-port0"},
+            {"port_number": 1, "name": "PC1-port1"}
+          ],
+          "console_type": "none"
+        },
+        "category": "switches",
+        "console_type": "none",
+        "console_host": "127.0.0.1",
+        "console_port": 5007,
+        "linked": true,
+        "label": {
+          "text": "Employee-PC1\n(VPCS 192.168.20.10)",
+          "x": 720,
+          "y": 548,
+          "style": "font-size: 12px; color: #7FB2E8;"
+        },
+        "status": "stopped"
+      },
+      {
+        "id": "1a2b3c4d-0000-4000-8000-000000000040",
+        "name": "Cloud-EXT",
+        "type": "cloud",
+        "x": 60,
+        "y": 60,
+        "z": 0,
+        "properties": {
+          "interfaces": [],
+          "console_type": "telnet"
+        },
+        "category": "guests",
+        "console_type": "telnet",
+        "console_host": "127.0.0.1",
+        "console_port": 5008,
+        "linked": true,
+        "label": {
+          "text": "Cloud · EXT (untrusted)",
+          "x": 60,
+          "y": 48,
+          "style": "font-size: 12px; color: #6F869B;"
+        },
+        "status": "stopped"
+      }
+    ],
+    "links": [
+      {
+        "id": "cafe0000-0000-4000-8000-000000000001",
+        "description": "EXT: Cloud -> R1 Gi0/0",
+        "link_style": "solid",
+        "type": "ethernet",
+        "suspend": false,
+        "link_color": "#2b2b2b",
+        "link_label_color": "#ffffff",
+        "nodes": [
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000040", "adapter_number": 0, "port_number": 0, "label": {"text": "", "x": 0, "y": 0}},
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000020", "adapter_number": 0, "port_number": 0, "label": {"text": "", "x": 0, "y": 0}}
+        ]
+      },
+      {
+        "id": "cafe0000-0000-4000-8000-000000000002",
+        "description": "Kali -> R1 Gi0/0 (external leg)",
+        "link_style": "solid",
+        "type": "ethernet",
+        "suspend": false,
+        "link_color": "#2b2b2b",
+        "link_label_color": "#ffffff",
+        "nodes": [
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000010", "adapter_number": 0, "port_number": 0, "label": {"text": "EXT", "x": 0, "y": 0}},
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000020", "adapter_number": 0, "port_number": 0, "label": {"text": "", "x": 0, "y": 0}}
+        ]
+      },
+      {
+        "id": "cafe0000-0000-4000-8000-000000000003",
+        "description": "Trunk: R1 Gi0/1 -> SW1 Gi1/0/1",
+        "link_style": "solid",
+        "type": "ethernet",
+        "suspend": false,
+        "link_color": "#2b2b2b",
+        "link_label_color": "#ffffff",
+        "nodes": [
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000020", "adapter_number": 0, "port_number": 1, "label": {"text": "TRUNK", "x": 0, "y": 0}},
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000021", "adapter_number": 0, "port_number": 0, "label": {"text": "", "x": 0, "y": 0}}
+        ]
+      },
+      {
+        "id": "cafe0000-0000-4000-8000-000000000004",
+        "description": "Trunk: SW1 Gi1/0/2 -> SW2 Gi1/0/1",
+        "link_style": "solid",
+        "type": "ethernet",
+        "suspend": false,
+        "link_color": "#2b2b2b",
+        "link_label_color": "#ffffff",
+        "nodes": [
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000021", "adapter_number": 0, "port_number": 1, "label": {"text": "TRUNK", "x": 0, "y": 0}},
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000022", "adapter_number": 0, "port_number": 0, "label": {"text": "", "x": 0, "y": 0}}
+        ]
+      },
+      {
+        "id": "cafe0000-0000-4000-8000-000000000005",
+        "description": "Trunk: SW1 Gi1/0/3 -> SW3 Gi1/0/1",
+        "link_style": "solid",
+        "type": "ethernet",
+        "suspend": false,
+        "link_color": "#2b2b2b",
+        "link_label_color": "#ffffff",
+        "nodes": [
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000021", "adapter_number": 0, "port_number": 2, "label": {"text": "TRUNK", "x": 0, "y": 0}},
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000023", "adapter_number": 0, "port_number": 0, "label": {"text": "", "x": 0, "y": 0}}
+        ]
+      },
+      {
+        "id": "cafe0000-0000-4000-8000-000000000006",
+        "description": "DMZ: SW2 Gi1/0/2 -> DVWA Ethernet0",
+        "link_style": "solid",
+        "type": "ethernet",
+        "suspend": false,
+        "link_color": "#2b2b2b",
+        "link_label_color": "#ffffff",
+        "nodes": [
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000022", "adapter_number": 0, "port_number": 1, "label": {"text": "VLAN10", "x": 0, "y": 0}},
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000011", "adapter_number": 0, "port_number": 0, "label": {"text": "", "x": 0, "y": 0}}
+        ]
+      },
+      {
+        "id": "cafe0000-0000-4000-8000-000000000007",
+        "description": "DMZ: SW2 Gi1/0/3 -> Kali Ethernet1",
+        "link_style": "solid",
+        "type": "ethernet",
+        "suspend": false,
+        "link_color": "#2b2b2b",
+        "link_label_color": "#ffffff",
+        "nodes": [
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000022", "adapter_number": 0, "port_number": 2, "label": {"text": "VLAN10", "x": 0, "y": 0}},
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000010", "adapter_number": 0, "port_number": 1, "label": {"text": "", "x": 0, "y": 0}}
+        ]
+      },
+      {
+        "id": "cafe0000-0000-4000-8000-000000000008",
+        "description": "INTERNAL: SW3 Gi1/0/2 -> PC1 Ethernet Switch",
+        "link_style": "solid",
+        "type": "ethernet",
+        "suspend": false,
+        "link_color": "#2b2b2b",
+        "link_label_color": "#ffffff",
+        "nodes": [
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000023", "adapter_number": 0, "port_number": 1, "label": {"text": "VLAN20", "x": 0, "y": 0}},
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000030", "adapter_number": 0, "port_number": 0, "label": {"text": "", "x": 0, "y": 0}}
+        ]
+      },
+      {
+        "id": "cafe0000-0000-4000-8000-000000000009",
+        "description": "INTERNAL: SW3 Gi1/0/3 -> Kali Ethernet2",
+        "link_style": "solid",
+        "type": "ethernet",
+        "suspend": false,
+        "link_color": "#2b2b2b",
+        "link_label_color": "#ffffff",
+        "nodes": [
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000023", "adapter_number": 0, "port_number": 2, "label": {"text": "VLAN20", "x": 0, "y": 0}},
+          {"node_id": "1a2b3c4d-0000-4000-8000-000000000010", "adapter_number": 0, "port_number": 2, "label": {"text": "", "x": 0, "y": 0}}
+        ]
+      }
+    ],
+    "drawings": [],
+    "viewpoints": {
+      "east": {},
+      "west": {}
+    }
+  }
+}

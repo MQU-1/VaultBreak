@@ -19,6 +19,8 @@ VLAN 1 on purpose.
 | `sim/` | Standalone browser-based labs you can actually run: ARP / DAI, Layer-2 (MAC flood + DHCP starvation), and Web exploitation (SQLi / XSS) |
 | `Dockerfile` | Serves the whole site + labs from a lightweight `nginx` container |
 | `docker-compose.yml` | One command to run the site **and** a real DVWA lab target for hands-on practice |
+| `lab/compose/` | **Real machines** — Docker Compose lab: Kali attacker, DVWA, DHCP router, victim PC, segmented EXT/DMZ/INTERNAL/MGMT networks |
+| `lab/gns3/` | **Real network** — GNS3 project + Cisco IOSv/IOSvL2 configs (R1/SW1/SW2/SW3) with DAI, DHCP snooping, port security |
 
 ## The three case files
 
@@ -75,6 +77,21 @@ you can flip the same hardening switches the walkthrough describes.
 - `sim/web-impl.html` — guess the SQLi payload, dump a user table, try an XSS payload in a
   guestbook, then flip on **parameterized queries** and **output encoding**.
 
+## The real lab (`lab/`)
+
+The sims are approximations — `lab/` is the **actually-run** version.
+
+- **`lab/compose/`** — real machines in containers. `docker compose up --build -d`
+  brings up a Kali attacker (arpspoof, macof, dhcpig, sqlmap, hashcat, stegseek…),
+  the DVWA target, an edge "router" (dnsmasq DHCP pool + extended ACL) and an
+  Employee-PC1, wired across EXT / VLAN10 DMZ / VLAN20 INTERNAL / VLAN99 MGMT.
+- **`lab/gns3/`** — the same topology in GNS3 with Cisco IOSv / IOSvL2, so the
+  switch-only defenses (Port Security, **DHCP Snooping**, **DAI**, BPDU Guard)
+  can be run against real `macof` / `arpspoof` / `dhcpstarv` traffic.
+
+Start with the **sims**, then move to the real machines. Full instructions:
+`lab/README.md`.
+
 ## Project layout
 
 ```text
@@ -85,6 +102,9 @@ VaultBreak/
 │  ├─ arp-mitm.html               ARP spoofing + DAI lab
 │  ├─ layer2.html                 MAC flood + DHCP starvation lab
 │  └─ web-impl.html               SQLi / XSS web lab
+├─ lab/
+│  ├─ compose/                    real Docker lab (Kali, DVWA, r1, victim)
+│  └─ gns3/                       real Cisco IOSv/IOSvL2 topology + configs
 ├─ Dockerfile                     nginx static server
 ├─ docker-compose.yml             site + DVWA lab
 ├─ LICENSE
