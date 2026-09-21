@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultBreak Lab · 02 — ARP Spoofing / DAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-950:#081729; --navy-900:#0E2440; --navy-800:#123054; --navy-700:#1B3D63;
+  --line-dim:rgba(143,211,255,0.22); --line-bright:#8FD3FF;
+  --ink:#F2F6FA; --ink-dim:#9FB4C7; --ink-faint:#6F869B;
+  --brass:#D9A544; --brass-bright:#F0C46B;
+  --secure:#3ED598; --secure-dim:rgba(62,213,152,0.14);
+  --victim:#7FB2E8; --c-ghost:#5FA8FF; --case-accent:#5FA8FF;
+  --font-display:'Big Shoulders Display', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;background:
+    radial-gradient(ellipse at 20% -10%, rgba(95,168,211,0.10), transparent 55%),
+    radial-gradient(ellipse at 100% 0%, rgba(217,165,68,0.06), transparent 45%),
+    var(--navy-900);
+  color:var(--ink);font-family:var(--font-body);line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--font-display);font-weight:800;text-transform:uppercase;margin:0;letter-spacing:.01em;}
+p{margin:0;} a{color:inherit;} button{font-family:var(--font-body);cursor:pointer;}
+::selection{background:var(--brass);color:var(--navy-950);}
+:focus-visible{outline:2px solid var(--brass-bright);outline-offset:3px;}
+
+header{
+  display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+  background:rgba(8,23,41,0.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line-dim);
+}
+.wordmark{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:1.15rem;letter-spacing:.05em;}
+.wordmark .dot{width:10px;height:10px;border-radius:50%;background:var(--brass);box-shadow:0 0 10px var(--brass);}
+header a{
+  font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;padding:7px 12px;border:1px solid var(--line-dim);border-radius:3px;transition:all .2s;
+}
+header a:hover{color:var(--ink);border-color:var(--brass);}
+
+main{max-width:1180px;margin:0 auto;padding:28px;}
+.eyebrow{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:.7rem;
+  padding:5px 10px;border-radius:3px;border:1px solid var(--line-dim);color:var(--ink-dim);
+  background:rgba(143,211,255,0.04);white-space:nowrap;
+}
+.hero-top{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 14px;}
+.hero h1{font-size:clamp(2.2rem,5vw,3.4rem);color:var(--case-accent);margin-bottom:10px;}
+.hero-sub{max-width:720px;color:var(--ink-dim);font-size:.98rem;margin-bottom:22px;}
+.lab-body{display:grid;grid-template-columns:420px 1fr;gap:30px;align-items:start;}
+
+.diagram-panel{display:flex;flex-direction:column;gap:14px;position:sticky;top:20px;}
+.mode-toggle{display:flex;border:1px solid var(--line-dim);border-radius:4px;overflow:hidden;}
+.mode-toggle button{
+  flex:1;background:var(--navy-800);color:var(--ink-dim);border:none;padding:11px 8px;
+  font-family:var(--font-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;
+  border-right:1px solid var(--line-dim);transition:all .2s;
+}
+.mode-toggle button:last-child{border-right:none;}
+.mode-toggle button[aria-pressed="true"]{background:var(--navy-700);color:var(--ink);font-weight:600;}
+#hardOff[aria-pressed="true"]{box-shadow:inset 0 -3px 0 var(--case-accent);}
+#hardOn[aria-pressed="true"]{box-shadow:inset 0 -3px 0 var(--secure);}
+
+.diagram-frame{border:1px solid var(--line-dim);border-radius:8px;padding:10px;background:linear-gradient(180deg, rgba(143,211,255,0.04), transparent);}
+svg{width:100%;height:auto;display:block;}
+.zone-rect{fill:rgba(143,211,255,0.05);stroke:var(--line-dim);stroke-width:1;stroke-dasharray:5 5;}
+.zone-label{font-family:var(--font-mono);font-size:11px;fill:var(--ink-faint);}
+.node-ring{fill:var(--navy-800);stroke:var(--line-dim);stroke-width:2;transition:stroke .35s ease, filter .35s ease;}
+.node-code{font-family:var(--font-mono);font-weight:600;font-size:12px;fill:var(--ink-dim);text-anchor:middle;dominant-baseline:middle;}
+.node-label{font-family:var(--font-mono);font-size:10.5px;fill:var(--ink-faint);text-anchor:middle;}
+.node-sub{font-family:var(--font-mono);font-size:9px;fill:var(--ink-faint);text-anchor:middle;opacity:.7;}
+.node-badge{font-family:var(--font-mono);font-weight:700;font-size:12px;text-anchor:middle;dominant-baseline:middle;opacity:0;}
+.link{stroke:var(--line-dim);stroke-width:1.5;}
+.dot{filter:drop-shadow(0 0 5px currentColor);}
+.role-origin .node-ring{stroke:var(--case-accent);fill:rgba(95,168,255,0.12);filter:drop-shadow(0 0 6px var(--case-accent));}
+.role-origin .node-code{fill:var(--ink);}
+.role-victim .node-ring{stroke:var(--victim);}
+.role-victim .node-code{fill:var(--ink);}
+.role-victim .node-badge{opacity:1;fill:var(--victim);}
+.role-secure .node-ring{stroke:var(--secure);fill:rgba(62,213,152,0.08);filter:drop-shadow(0 0 8px var(--secure));}
+.role-secure .node-badge{opacity:1;fill:var(--secure);}
+.role-transit .node-ring{stroke:var(--line-bright);}
+.role-transit .node-code{fill:var(--ink);}
+.role-compromised .node-ring{stroke:var(--case-accent);}
+.role-compromised .node-badge{opacity:1;fill:var(--case-accent);}
+.diagram-legend{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--font-mono);font-size:.68rem;color:var(--ink-faint);}
+.diagram-legend span{display:inline-flex;align-items:center;gap:5px;}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+.control-panel{display:flex;flex-direction:column;gap:16px;}
+.controls{display:flex;flex-wrap:wrap;gap:10px;}
+.controls button{
+  font-family:var(--font-mono);font-size:.76rem;letter-spacing:.04em;text-transform:uppercase;
+  padding:11px 16px;border-radius:4px;border:1px solid var(--line-dim);background:var(--navy-800);color:var(--ink);
+  transition:all .2s;
+}
+.controls button:hover:not(:disabled){border-color:var(--case-accent);transform:translateY(-2px);}
+.controls button.primary{background:var(--case-accent);border-color:var(--case-accent);color:var(--navy-950);font-weight:600;}
+.controls button.ghost{color:var(--ink-dim);}
+.controls button:disabled{opacity:.35;cursor:not-allowed;}
+
+.tables{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:.76rem;background:var(--navy-800);border:1px solid var(--line-dim);border-radius:6px;overflow:hidden;}
+table th{font-size:.62rem;letter-spacing:.1em;color:var(--ink-faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line-dim);}
+table td{padding:8px 10px;border-bottom:1px solid rgba(143,211,255,0.08);color:var(--ink-dim);vertical-align:top;white-space:nowrap;}
+td.ip{color:var(--ink);}
+tr.poisoned{background:rgba(255,107,74,0.12);}
+tr.poisoned td{color:var(--c-ghost);}
+tr.poisoned td.ip{color:var(--ink);}
+.tag{font-family:var(--font-mono);font-size:.6rem;padding:2px 6px;border-radius:3px;letter-spacing:.06em;}
+.tag.ok{color:var(--secure);border:1px solid var(--secure);}
+.tag.bad{color:var(--case-accent);border:1px solid var(--case-accent);}
+.tag.off{color:var(--ink-faint);border:1px solid var(--line-dim);}
+
+.sniff{min-height:64px;border:1px solid var(--line-dim);border-radius:8px;background:rgba(95,168,255,0.05);padding:12px 16px;}
+.sniff h4{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.14em;color:var(--ink-faint);margin:0 0 8px;text-transform:uppercase;}
+.sniff pre{margin:0;font-family:var(--font-mono);font-size:.78rem;color:var(--case-accent);white-space:pre-wrap;}
+.sniff.empty pre{color:var(--ink-faint);}
+
+.terminal{border:1px solid var(--line-dim);border-radius:8px;overflow:hidden;background:#081222;}
+.terminal-chrome{display:flex;align-items:center;gap:6px;padding:9px 12px;background:var(--navy-800);border-bottom:1px solid var(--line-dim);font-family:var(--font-mono);font-size:.72rem;color:var(--ink-faint);}
+.terminal-chrome span{width:9px;height:9px;border-radius:50%;background:var(--ink-faint);opacity:.5;}
+.terminal-body{padding:14px 16px;font-family:var(--font-mono);font-size:.82rem;}
+.term-line{color:var(--ink-dim);white-space:pre-wrap;word-break:break-word;padding:2px 0;opacity:0;animation:lineIn .3s ease forwards;}
+.term-line.syslog{color:var(--secure);border-left:2px solid var(--secure);padding-left:10px;margin:4px 0;}
+.term-line.warn{color:var(--case-accent);}
+.term-line.dim{color:var(--ink-faint);}
+@keyframes lineIn{from{opacity:0;}to{opacity:1;}}
+
+footer{padding:26px 0 48px;color:var(--ink-faint);font-size:.8rem;border-top:1px solid var(--line-dim);}
+@media (max-width:900px){
+  .lab-body{grid-template-columns:1fr;}
+  .diagram-panel{position:relative;top:0;}
+  .tables{grid-template-columns:1fr;}
+  main{padding:20px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark"><span class="dot"></span>VAULTBREAK</div>
+  <a href="../index.html">← Back to case files</a>
+</header>
+
+<main>
+  <div class="hero-top">
+    <span class="chip">ARP SPOOF</span><span class="chip">MITM</span><span class="chip">DAI</span><span class="chip">VLAN 20 · INTERNAL</span>
+  </div>
+  <h1>Lab 02 · The Ghost in the Wire</h1>
+  <p class="hero-sub">
+    Forge ARP replies to slip between an employee and the gateway, watch the traffic get sniffed —
+    then turn on <strong>Dynamic ARP Inspection (DAI)</strong> and watch the switch drop the lies at the port.
+  </p>
+
+  <div class="lab-body">
+    <aside class="diagram-panel">
+      <div class="mode-toggle" role="group" aria-label="Hardening state">
+        <button id="hardOff" aria-pressed="true">⚠ DAI Off</button>
+        <button id="hardOn" aria-pressed="false">✓ DAI On</button>
+      </div>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 640 380" xmlns="http://www.w3.org/2000/svg" aria-label="ARP lab topology">
+          <rect class="zone-rect" x="18" y="60" width="150" height="300" rx="16" opacity="0.5"></rect>
+          <text class="zone-label" x="28" y="50">VLAN 20 · INTERNAL</text>
+          <g class="links">
+            <line class="link" x1="160" y1="190" x2="320" y2="100"></line>
+            <line class="link" x1="320" y1="100" x2="480" y2="190"></line>
+            <line class="link" x1="320" y1="100" x2="320" y2="300"></line>
+          </g>
+          <g class="node" data-id="att" transform="translate(160,190)">
+            <circle class="node-ring" r="30"></circle><text class="node-code">ATK</text><text class="node-badge" x="24" y="-24"></text>
+            <text class="node-label" y="48">Kali-Attacker</text><text class="node-sub" y="60">192.168.20.66</text>
+          </g>
+          <g class="node" data-id="sw" transform="translate(320,100)">
+            <circle class="node-ring" r="30"></circle><text class="node-code">SW3</text><text class="node-badge" x="24" y="-24"></text>
+            <text class="node-label" y="48">SW3 · access</text><text class="node-sub" y="60">DAI here</text>
+          </g>
+          <g class="node" data-id="pc" transform="translate(480,190)">
+            <circle class="node-ring" r="30"></circle><text class="node-code">PC1</text><text class="node-badge" x="24" y="-24"></text>
+            <text class="node-label" y="48">Employee-PC1</text><text class="node-sub" y="60">192.168.20.10</text>
+          </g>
+          <g class="node" data-id="gw" transform="translate(320,300)">
+            <circle class="node-ring" r="30"></circle><text class="node-code">R1</text><text class="node-badge" x="24" y="-24"></text>
+            <text class="node-label" y="48">R1 · gateway</text><text class="node-sub" y="60">192.168.20.1</text>
+          </g>
+          <g id="dyn"></g>
+        </svg>
+      </div>
+      <div class="diagram-legend">
+        <span><span class="legend-dot" style="background:var(--case-accent)"></span>Attacker / forged frame</span>
+        <span><span class="legend-dot" style="background:var(--victim)"></span>Victim</span>
+        <span><span class="legend-dot" style="background:var(--secure)"></span>Blocked / hardened</span>
+        <span><span class="legend-dot" style="background:var(--ink-faint)"></span>Idle</span>
+      </div>
+    </aside>
+
+    <div class="control-panel">
+      <div class="controls">
+        <button class="primary" data-act="forge-pc">1 · Forge ARP → PC1</button>
+        <button class="primary" data-act="forge-gw">2 · Forge ARP → R1</button>
+        <button class="primary" data-act="login">3 · Victim logs in</button>
+        <button class="ghost" data-act="reset">↻ Reset</button>
+      </div>
+
+      <div class="tables">
+        <table id="tPC1">
+          <thead><tr><th>Employee-PC1 ARP table</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <table id="tR1">
+          <thead><tr><th>R1 ARP table</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="sniff empty" id="sniff">
+        <h4>Wireshark · on the attacker ← </h4>
+        <pre id="sniffBody">(nothing captured yet)</pre>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-chrome"><span></span><span></span><span></span>&nbsp; kali@attacker — arpspoof / wireshark</div>
+        <div class="terminal-body" id="termLines"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>VaultBreak · Lab 02 — ARP spoofing &amp; Dynamic ARP Inspection · educational sandbox only</footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+var NODES = {
+  att:{x:160,y:190}, sw:{x:320,y:100}, pc:{x:480,y:190}, gw:{x:320,y:300}
+};
+var MAC_ATT = '00:11:22:33:44:55';
+var MAC_GW  = '00:1a:aa:aa:aa:aa';
+var MAC_PC  = '00:1b:bb:bb:bb:bb';
+
+var state = {
+  hard:false,
+  pcPoisoned:false,
+  gwPoisoned:false
+};
+
+var termBox = document.getElementById('termLines');
+var sniffBody = document.getElementById('sniffBody');
+var sniffBox = document.getElementById('sniff');
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function log(s, cls){
+  var d=document.createElement('div');
+  d.className='term-line'+(cls?' '+cls:'');
+  d.textContent=s;
+  termBox.appendChild(d);
+  termBox.scrollTop=termBox.scrollHeight;
+}
+function clearLog(){
+  termBox.innerHTML='';
+  sniffBox.classList.add('empty');
+  sniffBody.textContent='(nothing captured yet)';
+}
+
+function setRole(id, role){
+  var el=document.querySelector('g[data-id="'+id+'"]');
+  if(!el) return;
+  el.className='node role-'+(role||'idle');
+  var b=el.querySelector('.node-badge');
+  var map={origin:'>',victim:'?',secure:'\u2713',transit:'\u00b7',compromised:'!',idle:''};
+  b.textContent=map[role]||'';
+}
+
+function setRoles(){
+  var roles={att:'idle',sw:'idle',pc:'idle',gw:'idle'};
+  if(state.hard) roles.sw='secure';
+  if(state.pcPoisoned) roles.pc='victim';
+  if(state.gwPoisoned) roles.gw='transit';
+  if(state.pcPoisoned||state.gwPoisoned) roles.att='origin';
+  Object.keys(roles).forEach(function(id){ setRole(id, roles[id]); });
+}
+
+var animId=null;
+function animatePath(pts, color){
+  if(document.querySelector('#animfin')){
+    var o=document.getElementById('animfin'); if(o) o.remove();
+  }
+  var host=document.getElementById('dyn');
+  var circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  circle.setAttribute('r','6');
+  circle.setAttribute('class','dot');
+  circle.setAttribute('fill',color||'#FF6B4A');
+  circle.id='animfin';
+  host.appendChild(circle);
+  var dur=360*pts.length;
+  var start=performance.now();
+  function tick(now){
+    var t=Math.min((now-start)/dur,1);
+    var idx=t*(pts.length-1);
+    var i0=Math.min(Math.floor(idx),pts.length-2);
+    var f=idx-i0;
+    var a=pts[i0], b=pts[i0+1];
+    circle.setAttribute('cx',a.x+(b.x-a.x)*f);
+    circle.setAttribute('cy',a.y+(b.y-a.y)*f);
+    if(t<1){ animId=requestAnimationFrame(tick); }
+  }
+  animId=requestAnimationFrame(tick);
+}
+
+function renderTables(){
+  var pcRows=[
+    {ip:'192.168.20.1', mac:state.pcPoisoned?MAC_ATT+'  (attacker!)':MAC_GW+'  (R1)', poison:state.pcPoisoned, note:state.pcPoisoned?'poisoned':'ok'},
+    {ip:'192.168.20.66', mac:MAC_ATT, poison:false, note:'neighbor'}
+  ];
+  var gwRows=[
+    {ip:'192.168.20.10', mac:state.gwPoisoned?MAC_ATT+'  (attacker!)':MAC_PC+'  (PC1)', poison:state.gwPoisoned, note:state.gwPoisoned?'poisoned':'ok'},
+    {ip:'192.168.20.66', mac:MAC_ATT, poison:false, note:'neighbor'}
+  ];
+  fill('tPC1', pcRows);
+  fill('tR1', gwRows);
+}
+function fill(id, rows){
+  var tb=document.getElementById(id).querySelector('tbody');
+  tb.innerHTML='';
+  rows.forEach(function(r){
+    var tr=document.createElement('tr');
+    if(r.poison) tr.className='poisoned';
+    var td1=document.createElement('td'); td1.className='ip'; td1.textContent=r.ip;
+    var td2=document.createElement('td'); td2.textContent=r.mac;
+    var tag=document.createElement('span');
+    tag.className='tag '+(r.poison?'bad':(r.note==='ok'?'ok':'off'));
+    tag.textContent=r.poison?'POISONED':r.note;
+    td2.appendChild(document.createTextNode(' '));
+    td2.appendChild(tag);
+    tr.appendChild(td1); tr.appendChild(td2);
+    tb.appendChild(tr);
+  });
+}
+
+function mitmActive(){
+  return state.pcPoisoned && state.gwPoisoned && !state.hard;
+}
+
+function actForge(target){
+  var id=target==='pc'?'pc':'gw';
+  var path=target==='pc'?['att','sw','pc']:['att','sw','gw'];
+  if(state.hard){
+    animatePath(path, '#3ED598');
+    log('kali@attacker:~$ arpspoof -i eth0 -t 192.168.20.'+(target==='pc'?10:1)+' 192.168.20.'+(target==='pc'?1:10), 'dim');
+    log('Sent forged ARP reply: 192.168.20.'+(target==='pc'?1:10)+' is-at '+MAC_ATT);
+    log('%SW_DAI-4-DHCP_SNOOPING_DENY: 1 invalid ARP on Gi0/3 ('+(target==='pc'?'192.168.20.1':'192.168.20.10')+'/'+MAC_ATT+') — dropped', 'syslog');
+    if(state.pcPoisoned&&!state.gwPoisoned){
+      log('ARP reply dropped at SW3 — binding table mismatch; cache unchanged');
+    } else if(!state.pcPoisoned&&state.gwPoisoned){
+      log('ARP reply dropped at SW3 — binding table mismatch; cache unchanged');
+    } else {
+      log('ARP reply dropped at SW3 — binding table mismatch');
+    }
+  } else {
+    animatePath(path, '#FF6B4A');
+    log('kali@attacker:~$ arpspoof -i eth0 -t 192.168.20.'+(target==='pc'?10:1)+' 192.168.20.'+(target==='pc'?1:10));
+    log('Sent forged ARP reply: 192.168.20.'+(target==='pc'?1:10)+' is-at '+MAC_ATT);
+    if(target==='pc'){
+      state.pcPoisoned=true;
+      log('employee-pc1$ arp -a  →  ? ('+(target==='pc'?'192.168.20.1':'192.168.20.10')+') at '+MAC_ATT+'  **poisoned**', 'warn');
+    } else {
+      state.gwPoisoned=true;
+      log('r1(config)#  →  arp entry updated  →  192.168.20.10 is-at '+MAC_ATT+'  **poisoned**', 'warn');
+    }
+    if(mitmActive()){
+      log('>>> attacker now in the middle of PC1 ⇄ R1 traffic (MITM established)', 'syslog');
+    }
+  }
+  renderTables();
+  setRoles();
+}
+
+function actLogin(){
+  if(state.hard){
+    animatePath(['pc','sw','gw'], '#8FD3FF');
+    log('employee-pc1$ curl http://intranet.vaultbreak.local/ ...');
+    log('PC1 talks straight to R1 through SW3 — the attacker is never in the path.');
+    sniffBox.classList.add('empty');
+    sniffBody.textContent='(nothing captured — the MITM was blocked upstream)';
+    return;
+  }
+  if(mitmActive()){
+    animatePath(['pc','sw','att','sw','gw']);
+    log('employee-pc1$ curl http://intranet.vaultbreak.local/ ...');
+    log('Traffic detours PC1 → SW3 → attacker → SW3 → R1 ...');
+    log('wireshark: HTTP Basic Auth captured', 'syslog');
+    sniffBox.classList.remove('empty');
+    sniffBody.textContent='Host: intranet.vaultbreak.local\nAuthorization: Basic am1vcmFsZXM6U3VtbWVyMjAyNCE='+'\n  → decodes to  j.morales : Summer2024!';
+    log('j.morales : Summer2024!   <-- credentials stolen off the wire', 'warn');
+  } else {
+    animatePath(['pc','sw','gw'], '#8FD3FF');
+    log('employee-pc1$ curl http://intranet.vaultbreak.local/ ...');
+    if(state.pcPoisoned||state.gwPoisoned){
+      log('Path is only half-poisoned — traffic still mostly flows through the switch.');
+    } else {
+      log('PC1 talks straight to R1; nothing touches the attacker.');
+    }
+    sniffBox.classList.add('empty');
+    sniffBody.textContent='(no off-path traffic — nothing to capture)';
+  }
+}
+
+function reset(){
+  state.hard=false;
+  state.pcPoisoned=false;
+  state.gwPoisoned=false;
+  document.getElementById('hardOff').setAttribute('aria-pressed','true');
+  document.getElementById('hardOn').setAttribute('aria-pressed','false');
+  clearLog();
+  log('# lab reset — layer 2 of an internal VLAN');
+  log('hardening state: DAI OFF');
+  renderTables();
+  setRoles();
+  // clear svg
+  var host=document.getElementById('dyn');
+  host.innerHTML='';
+  if(animId) cancelAnimationFrame(animId);
+}
+
+document.querySelectorAll('.mode-toggle button').forEach(function(b){
+  b.addEventListener('click', function(){
+    b.setAttribute('aria-pressed','true');
+    var other=b.id==='hardOn'?document.getElementById('hardOff'):document.getElementById('hardOn');
+    other.setAttribute('aria-pressed','false');
+    state.hard=(b.id==='hardOn');
+    if(state.hard){
+      log('# dynamic ARP inspection enabled on VLAN 20', 'syslog');
+      log('SW3 now validates every ARP reply against the DHCP snooping binding table');
+    } else {
+      log('# DAI disabled — SW3 forwards ARP replies without validation');
+    }
+    setRoles();
+  });
+});
+
+document.querySelectorAll('.controls button').forEach(function(b){
+  b.addEventListener('click', function(){
+    var act=b.getAttribute('data-act');
+    if(act==='forge-pc') actForge('pc');
+    else if(act==='forge-gw') actForge('gw');
+    else if(act==='login') actLogin();
+    else if(act==='reset') reset();
+  });
+});
+
+reset();
+})();
+</script>
+</body>
+</html>

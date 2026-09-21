@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultBreak · Lab Simulations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-950:#081729; --navy-900:#0E2440; --navy-800:#123054; --navy-700:#1B3D63;
+  --line-dim:rgba(143,211,255,0.22); --line-bright:#8FD3FF;
+  --ink:#F2F6FA; --ink-dim:#9FB4C7; --ink-faint:#6F869B;
+  --brass:#D9A544; --brass-bright:#F0C46B;
+  --secure:#3ED598; --secure-dim:rgba(62,213,152,0.14);
+  --c-flood:#FF6B4A; --c-ghost:#5FA8FF; --c-ledger:#E14F63;
+  --font-display:'Big Shoulders Display', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;background:
+    radial-gradient(ellipse at 15% -10%, rgba(255,107,74,0.07), transparent 50%),
+    radial-gradient(ellipse at 85% 0%, rgba(95,168,255,0.06), transparent 45%),
+    var(--navy-900);
+  color:var(--ink);font-family:var(--font-body);line-height:1.55;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--font-display);font-weight:800;text-transform:uppercase;margin:0;letter-spacing:.01em;}
+p{margin:0;} a{color:inherit;} button{font-family:var(--font-body);cursor:pointer;}
+::selection{background:var(--brass);color:var(--navy-950);}
+:focus-visible{outline:2px solid var(--brass-bright);outline-offset:3px;}
+
+header{
+  display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+  background:rgba(8,23,41,0.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line-dim);
+}
+.wordmark{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:1.15rem;letter-spacing:.05em;}
+.wordmark .dot{width:10px;height:10px;border-radius:50%;background:var(--brass);box-shadow:0 0 10px var(--brass);}
+header a{
+  font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;padding:7px 12px;border:1px solid var(--line-dim);border-radius:3px;transition:all .2s;
+}
+header a:hover{color:var(--ink);border-color:var(--brass);}
+
+main{max-width:1060px;margin:0 auto;padding:28px;}
+.eyebrow{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);}
+.hero h1{font-size:clamp(2.2rem,5vw,3.2rem);margin:10px 0 12px;color:var(--ink);}
+.hero-sub{max-width:680px;color:var(--ink-dim);font-size:.98rem;margin-bottom:8px;}
+.hero p strong{color:var(--brass);}
+
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:26px;}
+.lab-card{
+  display:flex;flex-direction:column;gap:12px;text-decoration:none;
+  border:1px solid var(--line-dim);border-top-width:3px;border-radius:10px;
+  padding:22px;background:linear-gradient(180deg, var(--navy-800), var(--navy-900));
+  transition:all .2s;
+}
+.lab-card:hover{transform:translateY(-3px);border-color:var(--card-accent);box-shadow:0 12px 30px rgba(0,0,0,0.35);}
+.lab-num{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--card-accent);}
+.lab-card h2{font-size:1.55rem;color:var(--ink);line-height:1.05;}
+.lab-card p{font-size:.88rem;color:var(--ink-dim);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:.66rem;
+  padding:4px 9px;border-radius:3px;border:1px solid var(--line-dim);color:var(--ink-dim);
+  background:rgba(143,211,255,0.04);white-space:nowrap;
+}
+.lab-open{
+  margin-top:4px;align-self:flex-start;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--navy-950);background:var(--card-accent);
+  padding:9px 14px;border-radius:4px;font-weight:600;transition:opacity .2s;
+}
+.lab-card:hover .lab-open{opacity:.85;}
+.lab-card .defend{color:var(--secure);font-size:.76rem;font-family:var(--font-mono);}
+
+.section{margin-top:38px;}
+.section-head h2{font-size:1.7rem;color:var(--ink);margin:6px 0 10px;}
+.section-head p{max-width:680px;color:var(--ink-dim);font-size:.92rem;}
+.about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px;}
+.tile{background:var(--navy-800);border:1px solid var(--line-dim);border-radius:8px;padding:16px 18px;}
+.tile h3{font-size:1.05rem;color:var(--brass);margin-bottom:8px;}
+.tile p{font-size:.82rem;color:var(--ink-dim);}
+.tile code{font-family:var(--font-mono);font-size:.74rem;color:var(--ink);background:var(--navy-950);border:1px solid var(--line-dim);border-radius:3px;padding:2px 6px;}
+
+footer{padding:30px 0 48px;color:var(--ink-faint);font-size:.8rem;border-top:1px solid var(--line-dim);margin-top:44px;}
+@media (max-width:640px){main{padding:20px;}header{padding:14px 18px;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark"><span class="dot"></span>VAULTBREAK</div>
+  <a href="../index.html">← Back to case files</a>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="eyebrow">Simulation Labs</div>
+    <h1>Run the Attacks.<br>Flip the Defenses.</h1>
+    <p class="hero-sub">
+      Three sandboxed, in-browser labs that mirror the case files. Nothing real is attacked —
+      packets, CAM tables, ARP caches, bindings and query plans are simulated in JavaScript so
+      you can flip the same hardening switches the walkthrough describes.
+    </p>
+  </div>
+
+  <div class="lab-grid">
+    <a class="lab-card" href="layer2.html" style="--card-accent:var(--c-flood)">
+      <span class="lab-num">Lab 01</span>
+      <h2>The Flood</h2>
+      <p>Break a switch two ways — fill its CAM table so it floods like a hub, or drain the DHCP pool so nobody can get an address.</p>
+      <div class="chips">
+        <span class="chip">MAC FLOOD</span><span class="chip">CAM TABLE</span><span class="chip">DHCP STARVE</span>
+      </div>
+      <span class="defend">✓ Defends with: Port Security · DHCP Snooping</span>
+      <span class="lab-open">Launch lab →</span>
+    </a>
+
+    <a class="lab-card" href="arp-mitm.html" style="--card-accent:var(--c-ghost)">
+      <span class="lab-num">Lab 02</span>
+      <h2>The Ghost in the Wire</h2>
+      <p>Forge ARP replies to slip between an employee and the gateway, sniff the login — then let DAI drop the lies at the switch.</p>
+      <div class="chips">
+        <span class="chip">ARP SPOOF</span><span class="chip">MITM</span><span class="chip">DAI</span>
+      </div>
+      <span class="defend">✓ Defends with: Dynamic ARP Inspection</span>
+      <span class="lab-open">Launch lab →</span>
+    </a>
+
+    <a class="lab-card" href="web-impl.html" style="--card-accent:var(--c-ledger)">
+      <span class="lab-num">Lab 03</span>
+      <h2>The Hidden Ledger</h2>
+      <p>Guess the SQLi payload, dump the user table, and ride a script tag out of the guestbook — then flip on parameterized queries and output encoding.</p>
+      <div class="chips">
+        <span class="chip">SQLi</span><span class="chip">XSS</span><span class="chip">DVWA</span>
+      </div>
+      <span class="defend">✓ Defends with: Parameterized Queries · Output Encoding</span>
+      <span class="lab-open">Launch lab →</span>
+    </a>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>About these labs</h2>
+      <p>Each lab is an approximation of a case-file chapter: a small topology, a set of attack buttons, and the exact security control that stops them.</p>
+    </div>
+    <div class="about-grid">
+      <div class="tile">
+        <h3>Before / After</h3>
+        <p>Every lab ships with a hardening toggle. Run the attack with it off, watch it land, then turn it on and watch the same move bounce off.</p>
+      </div>
+      <div class="tile">
+        <h3>Nothing leaves the browser</h3>
+        <p>No packets, no real servers. Attacks are simulated with plain JavaScript — opening a lab is completely safe.</p>
+      </div>
+      <div class="tile">
+        <h3>Serve or ship</h3>
+        <p>Run with any static server (<code>python -m http.server 8000</code>) or via the repo's nginx Docker image — labs are included.</p>
+      </div>
+      <div class="tile">
+        <h3>Defense first</h3>
+        <p>This project is educational. Every scenario ends with the control that stops the attack. Don't run any of it against systems you don't own.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>VaultBreak · Simulation labs — educational sandbox only</footer>
+</main>
+
+</body>
+</html>

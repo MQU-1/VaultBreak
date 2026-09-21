@@ -1,0 +1,24 @@
+# VaultBreak — run the static site + the DVWA lab target
+services:
+
+  vaultbreak-site:
+    build: .
+    container_name: vaultbreak-site
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+  vaultbreak-lab:
+    image: dockerizeddvwa/dvwa:latest
+    container_name: vaultbreak-lab
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    # DVWA runs its own bundled MySQL. If you see a DB connection error on first
+    # launch, visit /setup.php once, click "Create / Reset Database".
+    environment:
+      - DVWA_WEB_PHP_MODULES=pdo,mysqli
+
+networks:
+  default:
+    name: vaultbreak

