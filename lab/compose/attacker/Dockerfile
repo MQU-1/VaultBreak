@@ -14,6 +14,7 @@ RUN apt-get update \
       netcat-traditional curl wget \
       hashcat steghide stegseek \
       wordlists imagemagick \
+      pocl-opencl-icd ocl-icd-libopencl1 \
       tcpdump iptables iproute2 procps \
       vim less tree python3 strace \
  && apt-get clean \

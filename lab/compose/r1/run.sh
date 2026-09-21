@@ -38,7 +38,7 @@ iptables -P FORWARD ACCEPT
 # lives in the `forwarding` helper (host FORWARD chain, same policy).
 if [ -n "$DMZIF" ] && [ -n "$DHCPIF" ]; then
   iptables -A FORWARD -i "$DMZIF" -o "$DHCPIF" -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-  iptables -A FORWARD -i "$DMZIF" -o "$DHCPIF" -j REJECT --reject-with tcp-reset
+  iptables -A FORWARD -i "$DMZIF" -o "$DHCPIF" -j DROP
   echo "[r1] extended ACL in-namespace: NEW traffic $DMZIF -> $DHCPIF is rejected"
   echo "[r1]   (host-side twin in vb-forward enforces it for real in Docker)"
   echo "[r1]   try:  docker exec vb-dvwa curl -m 3 http://192.168.20.66:80/"

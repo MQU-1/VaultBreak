@@ -13,7 +13,7 @@ cat <<'SHEET'
  Targets:
    r1 DHCP/gateway  192.168.20.1    (pool 192.168.20.100-200)
    Employee-PC1     `docker exec vb-victim ip -4 addr show eth0`
-   DVWA             http://192.168.10.20  (dockerizeddvwa)
+   DVWA             http://192.168.10.20  (cytopia/dvwa)
    DVWA (host)      http://localhost:8080 (only out of the VM)
 
  One-command tools (all in $PATH, all real):
@@ -21,7 +21,7 @@ cat <<'SHEET'
    arp-mitm.sh <victim> <gateway>   -> MITM + tcpdump creds (Case 02)
    macof-flood.sh <nic> [n]         -> CAM flood (Case 01)
    dhcp-starv.sh <nic>             -> drain the pool (Case 01)
-   sqli.sh                         -> bypass DVWA login + sqlmap dump (Case 03)
+   sqli.sh                         -> log in, sqlmap-dump users via the SQLi module (Case 03)
    hashcat-run.sh                  -> crack the dumped MD5s (Case 03)
    stegseek-run.sh                 -> embed + crack ledger.jpg (Case 03)
 

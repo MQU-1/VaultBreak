@@ -8,7 +8,8 @@
 #
 # Machines (all real):
 #   r1        edge router  - ip_forward + dnsmasq (DHCP pool on VLAN 20) + extended ACL
-#   dvwa      web target   - DockerizedDVWA, the app referenced in Case 03
+#   dvwa      web target   - cytopia/dvwa (the app referenced in Case 03)
+#   dvwa-db   mysql backend for DVWA (mariadb, on the DMZ alongside the web tier)
 #   attacker  Kali Linux   - real tools: arpspoof, macof, dhcpig, sqlmap, hashcat, stegseek
 #   victim    Employee-PC1 - DHCP client that walks through the pool and logs into DVWA
 #
@@ -46,10 +47,10 @@ services:
         # the GNS3/Cisco half teaches with.
         DMZ_BR=$(ip -o -4 addr show | awk '$4 ~ /^192\.168\.10\.254\// {print $2; exit}')
         INT_BR=$(ip -o -4 addr show | awk '$4 ~ /^192\.168\.20\.254\// {print $2; exit}')
-        if [ -n "$DMZ_BR" ] && [ -n "$INT_BR" ]; then
-          iptables -A FORWARD -i "$DMZ_BR" -o "$INT_BR" -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-          iptables -A FORWARD -i "$DMZ_BR" -o "$INT_BR" -m conntrack --ctstate NEW -j REJECT --reject-with tcp-reset
-          echo "[vb] extended ACL live: $DMZ_BR -> $INT_BR (DMZ cannot initiate to INTERNAL)"
+        if [ -n "$$DMZ_BR" ] && [ -n "$$INT_BR" ]; then
+          iptables -A FORWARD -i "$$DMZ_BR" -o "$$INT_BR" -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+          iptables -A FORWARD -i "$$DMZ_BR" -o "$$INT_BR" -m conntrack --ctstate NEW -j DROP
+          echo "[vb] extended ACL live: $$DMZ_BR -> $$INT_BR (DMZ cannot initiate to INTERNAL)"
         else
           echo "[vb] WARN: bridge interfaces not found, ACL demo skipped"
         fi
@@ -82,8 +83,11 @@ services:
     restart: unless-stopped
 
   # --- vulnerable web target (Case 03) --------------------------------------
+  # cytopia/dvwa expects a MySQL backend; dvwa-db (below) is that backend.
+  # First-time setup: open http://localhost:8080/setup.php once, click
+  # "Create / Reset Database", then log in at /login.php with admin / password.
   dvwa:
-    image: dockerizeddvwa/dvwa:latest
+    image: cytopia/dvwa:latest
     container_name: vb-dvwa
     networks:
       dmz:
@@ -94,10 +98,40 @@ services:
     ports:
       - "8080:80"
     environment:
-      - DVWA_WEB_PHP_MODULES=pdo,mysqli
+      - MYSQL_HOSTNAME=dvwa-db
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USERNAME=dvwa
+      - MYSQL_PASSWORD=p@ssw0rd
+      # low = the walkthrough's documented exploit level; raise to impossible to
+      # watch the attack fail. See sim/web-impl.html for the mapping.
+      - SECURITY_LEVEL=low
+      - PHP_DISPLAY_ERRORS=0
     depends_on:
-      - forwarding
-      - r1
+      forwarding:
+        condition: service_started
+      r1:
+        condition: service_started
+      dvwa-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # --- DVWA database (MariaDB) on the DMZ -----------------------------------
+  dvwa-db:
+    image: mariadb:10.1
+    container_name: vb-dvwa-db
+    networks:
+      dmz:
+        ipv4_address: 192.168.10.21
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: dvwa
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: p@ssw0rd
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     restart: unless-stopped
 
   # --- attacker: Kali Linux with real tooling ------------------------------

@@ -1,4 +1,8 @@
 # VaultBreak — run the static site + the DVWA lab target
+# DVWA is served by cytopia/dvwa, which needs a MySQL/MariaDB database.
+# The database lives in its own vaultbreak-db container; the two talk over the
+# vaultbreak bridge network using the MYSQL_* credentials below.
+
 services:
 
   vaultbreak-site:
@@ -8,16 +12,43 @@ services:
       - "80:80"
     restart: unless-stopped
 
+  vaultbreak-db:
+    image: mariadb:10.1
+    container_name: vaultbreak-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: dvwa
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: p@ssw0rd
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
   vaultbreak-lab:
-    image: dockerizeddvwa/dvwa:latest
+    image: cytopia/dvwa:latest
     container_name: vaultbreak-lab
     ports:
       - "8080:80"
     restart: unless-stopped
-    # DVWA runs its own bundled MySQL. If you see a DB connection error on first
-    # launch, visit /setup.php once, click "Create / Reset Database".
+    depends_on:
+      vaultbreak-db:
+        condition: service_healthy
     environment:
-      - DVWA_WEB_PHP_MODULES=pdo,mysqli
+      - MYSQL_HOSTNAME=vaultbreak-db
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USERNAME=dvwa
+      - MYSQL_PASSWORD=p@ssw0rd
+      # low = the walkthrough's documented exploit level; DROP to impossible to
+      # see every attack fail. See sim/web-impl.html for the mapping.
+      - SECURITY_LEVEL=low
+      - PHP_DISPLAY_ERRORS=0
+
+# DVWA is up once the DB is healthy. On first launch, one manual step is still
+# required: visit http://localhost:8080/setup.php and click "Create / Reset
+# Database", then log in at /login.php with admin / password.
 
 networks:
   default:

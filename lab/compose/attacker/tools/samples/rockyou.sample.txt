@@ -3,6 +3,8 @@ password
 vault99
 Summer2024!
 admin
+abc123
+charley
 letmein
 welcome
 qwerty
