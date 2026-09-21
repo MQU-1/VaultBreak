@@ -1,0 +1,47 @@
+# VaultBreak — deploy the static site + browser labs to GitHub Pages.
+#
+# The whole walkthrough and all three simulation labs are plain static files,
+# so a single workflow publishes the repo root. Anyone then opens the site URL
+# and runs every attack in the browser — no install, no OS, no Docker required
+# for this path.
+#
+# After the first successful run (main branch), you don't need to touch
+# anything: Settings > Pages > "GitHub Actions" as the source.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
